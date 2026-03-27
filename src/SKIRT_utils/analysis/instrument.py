@@ -9,11 +9,10 @@ from scipy import integrate
 from scipy.optimize import curve_fit
 import numpy as np
 
-from ... import config
-from ...figure import Figure, Projection
-
-
-
+try:
+    from crc_scripts.figure import Figure, Projection 
+except:
+    print("Need to install crc_scripts to use built in plot functions. \n")
 try:   
     import stpsf
 except:
@@ -70,9 +69,9 @@ filter_wavelengths = np.array([
 ]) * u.micron
 
 
-class SKIRT_Instrument(object):
+class IFU(object):
     '''
-    This class is used to extract images from SKIRT instruments. It is not fully implemented yet.
+    This class is used to extract images from IFU data cubes.
     '''
 
     def __init__(self, dirc, inst_file, verbose=True):
@@ -204,7 +203,7 @@ class SKIRT_Instrument(object):
                 print("Image brightness units converted to %s."%image.unit)
 
 
-        # Convolve with the instrument PSF. This is the effects of the telescope mirrors, 
+        # Convolve with the telescope PSF. This is the effects of the telescope mirrors, 
         # reflectors, etc. before light hits the detectors. You always want to apply the PSF
         # first and then downsample to the true resolution of your instrument.
         if psf is not None:
@@ -581,15 +580,15 @@ class SKIRT_Instrument(object):
 
 class Telescope_PSF(object):
     '''
-    This class is used to create a telescope PSF to be convlved with given SKIRT instrument. It is not fully implemented yet.
+    This class is used to create a telescope PSF to be convlved with given SKIRT IFU. It is not fully implemented yet.
     '''
 
     def __init__(self,
-                 instrument: SKIRT_Instrument,
+                 IFU: IFU,
                  filter: str,  
                  verbose: bool = True):
     
-        self.instrument = instrument
+        self.IFU = IFU
         self.filter = filter
         self.verbose = verbose
 
@@ -635,8 +634,8 @@ class Telescope_PSF(object):
         telescope_resolution = telescope_res
         # SKIRT instrument can have any resolution. 
         # The relative resolution of the instrument and the actual telescope will determine the Gaussian sigma
-        if self.instrument is not None and use_instrument_res:
-            instrument_res = self.instrument.pixel_res_angle.to('arcsec') # in arcsec
+        if self.IFU is not None and use_instrument_res:
+            instrument_res = self.IFU.pixel_res_angle.to('arcsec') # in arcsec
         else: instrument_res=telescope_res # If no SKIRT instrument given assume same resolution as telescope
         # calculate the sigma in pixels.
         sigma = telescope_resolution/instrument_res
@@ -658,14 +657,14 @@ class Telescope_PSF(object):
         extension_name= "DET_SAMP" # Other choices are ["DET_SAMP", "OVERSAMP", "DET_DIST", "OVERDIST"]
         # Calculate npixels for the telescope given the npixels and resolution of the instrument given
         # Else we assume the instrument and telescope have the same resolution
-        if self.instrument is not None and use_instrument_res:
+        if self.IFU is not None and use_instrument_res:
             # Have to run this once to get the pixel scale for the instrument
             nircam = stpsf.NIRCam()
             nircam.filter = filter_name
             psf_hdulist = nircam.calc_psf()
             telescope_res = psf_hdulist[extension_name].header["PIXELSCL"] * u.arcsec
-            instrument_npixels = self.instrument.num_pixels[0]
-            instrument_res = self.instrument.pixel_res_angle.to('arcsec')
+            instrument_npixels = self.IFU.num_pixels[0]
+            instrument_res = self.IFU.pixel_res_angle.to('arcsec')
             telescope_npixels = int(instrument_npixels * instrument_res / telescope_res)
             if self.verbose:
                 print(f"JWST NIRCam filter {filter_name} has resolution of {telescope_res} arcsec.\n")
@@ -708,20 +707,20 @@ class Telescope_PSF(object):
         extension_name= "DET_SAMP" # Other choices are ["DET_SAMP", "OVERSAMP", "DET_DIST", "OVERDIST"]
         # Calculate npixels for the telescope given the npixels and resolution of the instrument given
         # Else we assume the instrument and telescope have the same resolution
-        if self.instrument is not None and use_instrument_res:
+        if self.IFU is not None and use_instrument_res:
             # Have to run this once to get the pixel scale for the instrument
             miri = stpsf.MIRI()
             miri.filter = filter_name
             psf_hdulist = miri.calc_psf()
             telescope_res = psf_hdulist[extension_name].header["PIXELSCL"] * u.arcsec
-            instrument_npixels = self.instrument.num_pixels[0]
-            instrument_res = self.instrument.pixel_res_angle.to('arcsec')
+            instrument_npixels = self.IFU.num_pixels[0]
+            instrument_res = self.IFU.pixel_res_angle.to('arcsec')
             telescope_npixels = int(instrument_npixels * instrument_res / telescope_res)
             if self.verbose:
                 print(f"JWST MIRI filter {filter_name} has resolution of {telescope_res} arcsec.\n")
-                print(f"SKIRT instrument has resolution of {instrument_res} arcsec.\n")
+                print(f"SKIRT IFU has resolution of {instrument_res} arcsec.\n")
         else:
-            # If no SKIRT instrument given assume same resolution as telescope
+            # If no SKIRT IFU given assume same resolution as telescope
             telescope_npixels = instrument_npixels
 
         # Create NIRCam PSF model
@@ -748,7 +747,7 @@ class Telescope_PSF(object):
 
 
 
-class SKIRT_SED:
+class SED:
     """
     A class to read and parse SKIRT SED (Spectral Energy Distribution) files.
     
@@ -760,7 +759,7 @@ class SKIRT_SED:
     Example usage:
     -------------
     # Create SED reader object
-    sed = SKIRT_SED('path/to/sed_file.txt')
+    sed = SED('path/to/sed_file.txt')
     
     # Read the data 
     sed.read_data()
@@ -783,7 +782,7 @@ class SKIRT_SED:
     
     def __init__(self, file_path):
         """
-        Initialize the SKIRT_SED with the file path.
+        Initialize the SED with the file path.
 
         Parameters:
         file_path (str): Path to the data file.
@@ -1003,9 +1002,9 @@ class SKIRT_SED:
     def __repr__(self):
         """String representation of the SED object."""
         if self.data is None:
-            return f"SKIRT_SED(file_path='{self.file_path}', data_loaded=False)"
+            return f"SED(file_path='{self.file_path}', data_loaded=False)"
         
-        info = f"SKIRT_SED(file_path='{self.file_path}'\n"
+        info = f"SED(file_path='{self.file_path}'\n"
         info += f"  Distance: {self.distance}\n"
         info += f"  {len(self.data)} data points\n"
         info += f"  Columns: {len(self.columns)}\n"
