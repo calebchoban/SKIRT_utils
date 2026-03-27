@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SKIRT_utils"
+version = "0.1.0"
+description = "Utility functions for the SKIRT radiative transfer code, including GIZMO snapshot reduction, SKIRT parameter file creation, and SKIRT output analysis."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+
+[tool.setuptools.packages.find]
+where = ["src"]
