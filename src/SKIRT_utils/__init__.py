@@ -7,5 +7,5 @@ data_reduction
     Tools for reducing raw simulation snapshots (e.g., GIZMO) and creating
     SKIRT parameter files.
 analysis
-    Tools for analysing SKIRT output such as SEDs and synthetic images.
+    Tools for analyzing SKIRT output such as SEDs and synthetic images.
 """

@@ -5,9 +5,26 @@ Utility functions used for SKIRT. Including GIZMO snapshots reduction, SKIRT par
 
 ```
 SKIRT_utils/
-├── data_reduction/   # Tools for reducing raw simulation snapshots (e.g., GIZMO)
-│                     # and creating SKIRT parameter files
-└── analysis/         # Tools for analysing SKIRT output (SEDs, synthetic images, etc.)
+├── src/
+│   └── SKIRT_utils/
+│       ├── data_reduction/   # Tools for reducing raw simulation snapshots (e.g., GIZMO)
+│       │                     # and creating SKIRT parameter files
+│       └── analysis/         # Tools for analyzing SKIRT output (SEDs, synthetic images, etc.)
+└── pyproject.toml
+```
+
+## Installation
+
+Install directly from the repository with pip:
+
+```bash
+pip install .
+```
+
+Or in editable/development mode:
+
+```bash
+pip install -e .
 ```
 
 ## Packages
