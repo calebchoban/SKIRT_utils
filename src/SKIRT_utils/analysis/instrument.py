@@ -9,10 +9,8 @@ from scipy import integrate
 from scipy.optimize import curve_fit
 import numpy as np
 
-try:
-    from crc_scripts.figure import Figure, Projection 
-except:
-    print("Need to install crc_scripts to use built in plot functions. \n")
+from crc_scripts.figure import Figure, Projection 
+
 try:   
     import stpsf
 except:
