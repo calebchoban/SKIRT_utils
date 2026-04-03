@@ -8,15 +8,12 @@ import xml.etree.ElementTree as ET
 
 def format_ski_file(
     snapnum: int,
-    simulation_object: str,
-    default_pixel_scale: float,
-    JWST_pixel_scale: float,
-    ALMA_pixel_scale: float,
-    highres_pixel_scale: float,
-    skirt_sim_mode: str,
-    dust_emission_type: str,
-    medium_grid: str,
-    output_path: str,
+    simulation_object: str='',
+    default_pixel_scale: float=0.1,
+    skirt_sim_mode: str='dust_emission',
+    dust_emission_type: str='equilibrium',
+    medium_grid: str='octtree',
+    output_path: str = '.',
     cosmological: bool = True,
     FIRE_ver: int = 0,
     num_packets: float = 1e7,
@@ -29,7 +26,8 @@ def format_ski_file(
     max_dust_frac: float = 1e-7,
     set_template_file: str ='',
     snapshot_scale_factors: str = '',
-    **kwargs
+    instrument_pixel_scales: dict = {},
+    add_template_placeholders: dict = {},
 ):
     """
     Prepare SKIRT input files for a given snapshot of a FIRE simulation.
@@ -38,63 +36,66 @@ def format_ski_file(
     ----------
     snapnum : int
         Snapshot number to process.
-    simulation_object : str
-        Name of the simulation object (e.g., "m12i_res7100").
-    default_pixel_scale : float
-        Default pixel scale in arcseconds per pixel for SKIRT images.
-    JWST_pixel_scale : float
-        Pixel scale in arcseconds per pixel for JWST images.
-    ALMA_pixel_scale : float
-        Pixel scale in arcseconds per pixel for ALMA images.
-    highres_pixel_scale : float
-        Pixel scale in arcseconds per pixel for hgh res images.
-    skirt_sim_mode : str
+    simulation_object : str, optional
+        Name of the simulation object (e.g., "m12i_res7100") used to determine cosmological parameters.
+    default_pixel_scale : float, optional
+        Pixel scale in arcseconds per pixel for the default instrument images.
+    skirt_sim_mode : str, optional
         Simulation mode for SKIRT (e.g., "dust_emission" or "extinction_only").
-    dust_emission_type : str
-        Dust emission mode (e.g., "equilibrium" or "stochastic")
-    medium_grid : str
-        Dust medium grid used in SKIRT (e.g., "octtree" or "voronoi")
-    output_path : str
-        Path to the output directory for SKIRT input files.
+    dust_emission_type : str, optional
+        Dust emission mode (e.g., "equilibrium" or "stochastic").
+    medium_grid : str, optional
+        Dust medium grid used in SKIRT (e.g., "octtree" or "voronoi").
+    output_path : str, optional
+        Path to the output file for the formatted ski file.
     cosmological : bool, optional
         Set whether simulation is cosmological.
     FIRE_ver : int, optional
-        Version of FIRE simulation (e.g., 2,3) used for determine redshift of snapshot number.
+        Version of FIRE simulation (e.g., 2, 3) used to determine redshift of snapshot number.
     num_packets : float, optional
-        Number of packets for SKIRT simulation (default is "1e7").
+        Number of photon packets for SKIRT simulation.
     num_wavelengths : int, optional
-        Number of wavelengths for SKIRT simulation (default is 200).
+        Number of wavelengths for SKIRT simulation.
     min_wavelength : float, optional
-        Minimum wavelength for SKIRT simulation (default is 0.09). 
+        Minimum wavelength in microns for SKIRT simulation.
     max_wavelength : float, optional
-        Maximum wavelength for SKIRT simulation (default is 2000.0).
+        Maximum wavelength in microns for SKIRT simulation.
     half_fov_kpc : float, optional
-        Half field of view in kpc (default is 18.0).
-    max_temperature : float
+        Half field of view in kpc.
+    max_temperature : float, optional
         Maximum temperature for the medium elements in the simulation. Unless
         using a custom dust prescription (e.g. with a constant dust-to-metals
         ratio), this should always be set to 0.0 K.
-    mass_fraction : float
+    mass_fraction : float, optional
         Fraction of the total medium mass to include in the simulation. This
         should be set to 1.0 unless using a custom dust prescription (e.g. with a
         constant dust-to-metals ratio).
-    max_dust_frac : float
+    max_dust_frac : float, optional
         When using medium_grid="octtree", this sets the maximum fraction of the
-        total dust mass allowed in any grid cell. Smaller values lead to finer 
-        griding.
-    set_template_file : str
-        Name of ski template you want to use. Will override the auto-selected template.
-    snapshot_scale_factors : string
+        total dust mass allowed in any grid cell. Smaller values lead to finer
+        gridding and higher memory usage.
+    set_template_file : str, optional
+        Path to a ski template file to use. Will override the auto-selected template.
+    snapshot_scale_factors : str, optional
         Path to text file containing scale factors for each snapshot of the simulation.
         If not given, will default to FIRE-2/3 values depending on FIRE_ver.
+    instrument_pixel_scales : dict, optional
+        Dictionary mapping instrument name prefixes to their pixel scales in arcseconds
+        per pixel. For each entry with key ``Name`` and value ``scale``, the placeholders
+        ``{NameNumPixelsX}`` and ``{NameNumPixelsY}`` are computed and added to the template.
+        Example: ``{"JWST": 0.031, "ALMA": 0.1}`` populates ``{JWSTNumPixelsX/Y}`` and
+        ``{ALMANumPixelsX/Y}``.
+    add_template_placeholders : dict
+        Dictionary of additional placeholder keys and corresponding values to add to the template beyond the default templates. Ensure keys should match the placeholder names in the template file.
     """
 
     if cosmological:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
         if snapshot_scale_factors:
             scale_factors = np.loadtxt(snapshot_scale_factors)
         if FIRE_ver == 0: raise ValueError("FIRE_ver must be set to 2 or 3 for cosmological simulations if snapshot_scale_factors not given.")
-        elif FIRE_ver <=2: scale_factors = np.loadtxt("FIRE2_snapshot_scale-factors.txt")
-        else: scale_factors = np.loadtxt("FIRE3_snapshot_scale-factors.txt")
+        elif FIRE_ver <=2: scale_factors = np.loadtxt(os.path.join(current_dir, "ski_templates/FIRE2_snapshot_scale-factors.txt"))
+        else: scale_factors = np.loadtxt(os.path.join(current_dir, "ski_templates/FIRE3_snapshot_scale-factors.txt"))
         z = 1.0 / scale_factors[snapnum] - 1
     else:
         z = 0
@@ -147,18 +148,12 @@ def format_ski_file(
 
     # Calculate the spatial scale in the simulation (in physical kpc) that
     # corresponds to 1 pixel
-    JWST_kpc_per_pixel = (
-        cosmo.kpc_proper_per_arcmin(z).to(u.kpc / u.arcsec).value * JWST_pixel_scale
-    )
-    ALMA_kpc_per_pixel = (
-        cosmo.kpc_proper_per_arcmin(z).to(u.kpc / u.arcsec).value * ALMA_pixel_scale
-    )
     default_kpc_per_pixel = (
         cosmo.kpc_proper_per_arcmin(z).to(u.kpc / u.arcsec).value * default_pixel_scale
     )
 
     # Set arbitrary distance to the object in Mpc
-    d_to_source = 10.0  # only used for rest-frame instruments all other instruments have distance set by redshift
+    d_to_source = 10.0  # only used for rest-frame instruments with flat all other instruments have distance set by redshift
 
     # Define limits for relevant wavelength ranges used in SKIRT
 
@@ -213,13 +208,17 @@ def format_ski_file(
         ski_template = f.read()
 
 
-    inst_names = get_instrument_names(ski_template_filepath)
-
-    JWST_npixels = int(np.ceil(2 * half_fov_kpc / JWST_kpc_per_pixel))
-    ALMA_npixels = int(np.ceil(2 * half_fov_kpc / ALMA_kpc_per_pixel))
     default_npixels = int(np.ceil(2 * half_fov_kpc / default_kpc_per_pixel))
 
-    if np.max([JWST_npixels,ALMA_npixels,default_npixels]) >= 1e4:
+    extra_npixels = {}
+    extra_kpc_per_pixel = {}
+    for name, pixel_scale in instrument_pixel_scales.items():
+        kpc_per_pixel = cosmo.kpc_proper_per_arcmin(z).to(u.kpc / u.arcsec).value * pixel_scale
+        extra_kpc_per_pixel[name] = kpc_per_pixel
+        extra_npixels[name] = int(np.ceil(2 * half_fov_kpc / kpc_per_pixel))
+
+    all_npixels = [default_npixels] + list(extra_npixels.values())
+    if np.max(all_npixels) >= 1e4:
         raise ValueError(
             "Number of pixels must be less than 1e4. "
             + "The current redshift is too small or the pixel scale is too fine."
@@ -229,17 +228,14 @@ def format_ski_file(
     fov_pc = 2 * half_fov_pc
 
     print(
-        f"SKIRT simulation will use JWST {JWST_npixels} x {JWST_npixels} pixels ({fov_pc:g} pc x {fov_pc:g} pc) "
-        + f"with a physical scale of {JWST_kpc_per_pixel:.2f} kpc / pixel."
-    )
-    print(
-        f"SKIRT simulation will use ALMA {ALMA_npixels} x {ALMA_npixels} pixels ({fov_pc:g} pc x {fov_pc:g} pc) "
-        + f"with a physical scale of {ALMA_kpc_per_pixel:.2f} kpc / pixel."
-    )
-    print(
         f"SKIRT simulation will use default {default_npixels} x {default_npixels} pixels ({fov_pc:g} pc x {fov_pc:g} pc) "
         + f"with a physical scale of {default_kpc_per_pixel:.2f} kpc / pixel."
     )
+    for name, npix in extra_npixels.items():
+        print(
+            f"SKIRT simulation will use {name} {npix} x {npix} pixels ({fov_pc:g} pc x {fov_pc:g} pc) "
+            + f"with a physical scale of {extra_kpc_per_pixel[name]:.2f} kpc / pixel."
+        )
 
     # Format the SKIRT input file with the appropriate parameters
 
@@ -281,20 +277,22 @@ def format_ski_file(
                 distance=f"{d_to_source:.4f}",
                 minWavelengthRest=f"{min_wavelength:.4f}",
                 maxWavelengthRest=f"{max_wavelength:.4f}",
-                numWavelengthsRest=f"{num_wavelengths:d}",
                 minWavelengthObs=f"{min_wavelength_obs:.4f}",
                 maxWavelengthObs=f"{max_wavelength_obs:.4f}",
-                numWavelengthsObs=f"{num_wavelengths:d}",
+                numWavelengths=f"{num_wavelengths:d}",
                 fieldOfViewX=f"{fov_pc:.4f}",
                 fieldOfViewY=f"{fov_pc:.4f}",
-                JWSTNumPixelsX=f"{JWST_npixels:d}",
-                JWSTNumPixelsY=f"{JWST_npixels:d}",
-                ALMANumPixelsX=f"{ALMA_npixels:d}",
-                ALMANumPixelsY=f"{ALMA_npixels:d}",
                 DefaultNumPixelsX=f"{default_npixels:d}",
                 DefaultNumPixelsY=f"{default_npixels:d}",
                 DefaultNumPixelsZ=f"{default_npixels:d}",  # for probes
             )
+        # Add extra placeholders for instruments with user-specified pixel scales
+        for name, npix in extra_npixels.items():
+            dict_placeholders = dict_placeholders | SafeDict(**{
+                f"{name}NumPixelsX": f"{npix:d}",
+                f"{name}NumPixelsY": f"{npix:d}",
+            })
+        # Add placeholders for dust emission wavelengths
         if skirt_sim_mode == "dust_emission":
             dict_placeholders = dict_placeholders | SafeDict(
                     minWavelengthBaseGridDust=f"{min_wavelength_dust_base:.4f}",
@@ -304,7 +302,7 @@ def format_ski_file(
                     maxWavelengthSubGridDust=f"{max_wavelength_dust_sub:.4f}",
                     numWavelengthsSubGridDust=f"{num_wavelengths_dust_sub:d}",
                 )
-
+        # Add extra placeholders from octtree medium grid
         if medium_grid == "octtree":
             # min and max level of octtree allowed
             min_tree_level = 3
@@ -314,58 +312,24 @@ def format_ski_file(
                     minTreeLevel=f"{min_tree_level:d}",
                     maxTreeLevel=f"{max_tree_level:d}",
                     maxDustFraction=f"{max_dust_frac:s}",
-                )     
-
-        # Find all placeholders in template and print them out to make sure all are being filled
+                )
+        # Add any additional placeholders specified by the user
+        for key,value in add_template_placeholders.items():
+            dict_placeholders[key] = value
+             
+        # Find all placeholders in template and look for any that are missing in the dictionary
         formatter = Formatter()
         placeholders = [field_name for _, field_name, _, _ in formatter.parse(ski_template) if field_name]
-        print(placeholders)
+        diff = list(set(placeholders) ^ set(dict_placeholders.keys()))
+        if len(diff) > 0:
+            print(f"ERROR: The following placeholders are in the template but missing from the default dictionary: {diff}")
+            print("Define desired values for these placeholders in the add_template_placeholders argument.")
+            return
 
         template = ski_template.format_map(dict_placeholders)
         f.write(template)
 
     print(f"Formatted SKIRT input file written to {output_path}")
-
-
-
-def get_instrument_names(ski_file: str):
-    """
-    Extract instrument names from a SKIRT .ski parameter file, optionally filtered by type.
-    
-    Parameters
-    ----------
-    ski_file : str
-        Path to the SKIRT .ski XML parameter file.
-    
-    Returns
-    -------
-    instrument_names : List[str]
-        List of instrument names matching the specified criteria.
-    
-    """
-    tree = ET.parse(ski_file)
-    root = tree.getroot()
-    
-    instrument_names = []
-    
-    # Find the instrumentSystem element
-    instrument_system = root.find('.//InstrumentSystem')
-    if instrument_system is None:
-        return instrument_names
-    
-    # Iterate over all instruments
-    for instrument in instrument_system:
-        # Filter by type if specified
-        if instrument.tag not in ["FrameInstrument", "FullInstrument"]:
-            continue
-        
-        # Get the instrumentName attribute
-        name = instrument.get('instrumentName')
-        if name is not None:
-            instrument_names.append(name)
-    
-    return instrument_names
-
 
 
 def format_job_script(
