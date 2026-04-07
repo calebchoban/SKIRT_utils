@@ -4,7 +4,6 @@ import numpy as np
 from string import Formatter
 from astropy.cosmology import LambdaCDM
 import astropy.units as u
-import xml.etree.ElementTree as ET
 
 def format_ski_file(
     snapnum: int,
@@ -88,6 +87,10 @@ def format_ski_file(
     add_template_placeholders : dict
         Dictionary of additional placeholder keys and corresponding values to add to the template beyond the default templates. Ensure keys should match the placeholder names in the template file.
     """
+
+    dust_emission_type = dust_emission_type.capitalize() # format to match expected template formatting
+    if dust_emission_type not in ["Equilibrium", "Stochastic"]:
+        raise ValueError(f"Invalid dust_emission_type: '{dust_emission_type}'. Must be 'equilibrium' or 'stochastic'.")
 
     if cosmological:
         current_dir = os.path.dirname(os.path.abspath(__file__))

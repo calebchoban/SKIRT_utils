@@ -205,7 +205,7 @@ def create_SKIRT_particle_files(snap_dir,
 
     # Need to save multiple files for grain size distributions
     if import_dust and import_sizes:
-        dust_file_names = [dust_file_name.split('.dat')[0]+'_sil.dat', dust_file_name.split('.dat')[0]+'_carb.dat', dust_file_name.split('.dat')[0]+'_pah.dat']
+        dust_file_names = [dust_file_name.split('.dat')[0]+'_silicate.dat', dust_file_name.split('.dat')[0]+'_graphite.dat', dust_file_name.split('.dat')[0]+'_neutralPAH.dat']
     else:
         dust_file_names = [dust_file_name]
 
@@ -241,9 +241,9 @@ def create_SKIRT_particle_files(snap_dir,
                     '# Column %i: temperature (K)\n'%(column_num+1)
             column_num+=2
         elif import_dust and import_species and not import_sizes:
-            header += '# Column %i: silicate dust mass (Msun)\n'%column_num + \
-                    '# Column %i: carbonaceous dust mass (Msun)\n'%(column_num+1) + \
-                    '# Column %i: neutral PAH dust mass (Msun)\n'%(column_num+2) + \
+            header += '# Column %i: silicate mass (Msun)\n'%column_num + \
+                    '# Column %i: graphite mass (Msun)\n'%(column_num+1) + \
+                    '# Column %i: neutral PAH mass (Msun)\n'%(column_num+2) + \
                     '# Column %i: temperature (K)\n'%(column_num+3)
             column_num+=4
         elif import_dust and import_species and import_sizes:
