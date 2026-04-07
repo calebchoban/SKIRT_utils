@@ -176,7 +176,7 @@ def create_SKIRT_particle_files(snap_dir,
         # Dust species info
         snap_species = halo.sp.dust_species
         spec_indices = halo.sp.dust_species_indices
-        species_bin_mass = p0.get_property('grain_bin_mass')
+        species_bin_mass = p0.get_property('grain_bin_mass') / 1.989E+33 # convert from grams to Msun
 
         # silicates
         sil_bin_mass = species_bin_mass[:,spec_indices[snap_species.index('silicates')]]
@@ -212,10 +212,15 @@ def create_SKIRT_particle_files(snap_dir,
     for file_name in dust_file_names:
         f = open(output_dir+"/"+file_name, 'w')
         # Make header for gas/dust with data columns matching specified properties
-        # Position is always needed, smoothing length depends on if you are using a grid or a voronoi tessellation
-        # Mass depends on if you are import a dust mass tracked in the simulation or assuming a dust mass using
-        # the gas mass and metallicity and an assumed dust-to-metals ratio such that Mdust = Mgas * Z * D/Z.
-        # Temperature is used as a cut off for dust mass. Anything above a set temperature is assumed to have no dust.
+        # Position is always needed, smoothing length used for octtree grid, 
+        # and temperature used as a cut off for dust mass. 
+        # Then other columns depend on what dust properties are being imported. 
+        #   1. If not importing dust, then import gas mass and metallicity to allow 
+        #      SKIRT to calculate dust mass using an assumed D/Z ratio. 
+        #   2. If importing dust but not species, then import only total dust mass. 
+        #   3. If importing species but not sizes, then import the mass of each dust species. 
+        #   4. If importing species and sizes, then import the mass in each grain size 
+        #      bin for each species.
         
         header =   '# Dust cell data\n' + \
                 '# ' + box_string + '\n' + \
@@ -251,8 +256,8 @@ def create_SKIRT_particle_files(snap_dir,
             column_num +=1
             for j in range(num_bins):
                 header += '# Column %i: bin %i weight (1)\n'%(column_num,j+1)
-            column_num +=num_bins
-            header += '# Column %i: temperature (K)\n'%(column_num+2) 
+                column_num +=1
+            header += '# Column %i: temperature (K)\n'%(column_num) 
             column_num +=1  
             
 
@@ -269,6 +274,7 @@ def create_SKIRT_particle_files(snap_dir,
             elif import_dust and import_species and not import_sizes:
                 line += "%.3e %.3e %.3e %.3e\n" %(m_sil[i], m_carb[i], m_pah[i], T[i])
             elif import_dust and import_species and import_sizes:
+                num_bins = num_dust_bins
                 if 'sil' in file_name:
                     spec_m = m_sil
                     spec_weights = sil_bin_weight
@@ -276,14 +282,14 @@ def create_SKIRT_particle_files(snap_dir,
                     spec_m = carb_mass
                     spec_weights = carb_bin_weight
                 elif 'pah' in file_name:
+                    num_bins = num_PAH_bins
                     spec_m = pah_mass
                     spec_weights = PAH_bin_weight
                 line += "%.3e "%(spec_m[i])
-                for j in range(num_dust_bins):
+                for j in range(num_bins):
                     line += "%.3e "%(spec_weights[i,j])
-                line += "%.3e " %(m_gas[i],Z[i],T[i])
                 line += "%.3e\n" %(T[i])
             f.write(line)
         f.close()
 
-        print(f"Gas/Dust data written to {dust_file_name}...")
+        print(f"Gas/Dust data written to {file_name}...")
