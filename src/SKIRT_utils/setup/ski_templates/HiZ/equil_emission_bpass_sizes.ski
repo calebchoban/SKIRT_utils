@@ -151,32 +151,42 @@
         <instrumentSystem type="InstrumentSystem">
             <InstrumentSystem>
                 <defaultWavelengthGrid type="WavelengthGrid">
-                    <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengthsObs}"/>
+                    <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                 </defaultWavelengthGrid>
                 <instruments type="Instrument">
-                    <SEDInstrument instrumentName="restframe_sed_xy" distance="10 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                    <SEDInstrument instrumentName="restframe_sed_xy" distance="{distance} Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
-                            <LogWavelengthGrid minWavelength="{minWavelengthRest} micron" maxWavelength="{maxWavelengthRest} micron" numWavelengths="{numWavelengthsObs}"/>
+                            <LogWavelengthGrid minWavelength="{minWavelengthRest} micron" maxWavelength="{maxWavelengthRest} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
-                    <SEDInstrument instrumentName="restframe_sed_yz" distance="10 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                    <SEDInstrument instrumentName="restframe_sed_xz" distance="{distance} Mpc" inclination="90 deg" azimuth="-90 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
-                            <LogWavelengthGrid minWavelength="{minWavelengthRest} micron" maxWavelength="{maxWavelengthRest} micron" numWavelengths="{numWavelengthsObs}"/>
+                            <LogWavelengthGrid minWavelength="{minWavelengthRest} micron" maxWavelength="{maxWavelengthRest} micron" numWavelengths="{numWavelengths}"/>
+                        </wavelengthGrid>
+                    </SEDInstrument>
+                    <SEDInstrument instrumentName="restframe_sed_yz" distance="{distance} Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogWavelengthGrid minWavelength="{minWavelengthRest} micron" maxWavelength="{maxWavelengthRest} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
                     <SEDInstrument instrumentName="obsframe_sed_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
-                            <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengthsObs}"/>
+                            <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
+                        </wavelengthGrid>
+                    </SEDInstrument>
+                    <SEDInstrument instrumentName="obsframe_sed_xz" distance="0 Mpc" inclination="90 deg" azimuth="-90 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
                     <SEDInstrument instrumentName="obsframe_sed_yz" distance="0 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
-                            <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengthsObs}"/>
+                            <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
                     <FrameInstrument instrumentName="highres_datacube_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
                         <wavelengthGrid type="WavelengthGrid">
-                            <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengthsObs}"/>
+                            <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </FrameInstrument>
                     <FrameInstrument instrumentName="JWST_broadband_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{JWSTNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{JWSTNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
@@ -236,6 +246,7 @@
                         <wavelengthGrid type="WavelengthGrid">
                             <ConfigurableBandWavelengthGrid>
                                 <bands type="Band">
+
                                     <BroadBand bandName="ALMA_ALMA_5"/>
                                     <BroadBand bandName="ALMA_ALMA_6"/>
                                     <BroadBand bandName="ALMA_ALMA_7"/>
