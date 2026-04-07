@@ -76,10 +76,9 @@ def create_SKIRT_particle_files(snap_dir,
         halo.principal_axes_vectors = set_principal_vectors
 
     if not halo.sp.Flag_DustSpecies and import_dust:
-        print("WARNING: import_dust set to True but this snapshot does not have dust. Set import_dust to False.")
+        raise ValueError("import_dust set to True but this snapshot does not have a dust model. Set import_dust to False.")
     if not halo.sp.Flag_GrainSizeBins and import_sizes:
-        print("WARNING: import_sizes set to True but this snapshot does not have grain size bins. Set import_sizes to False.")
-
+        raise ValueError("import_sizes set to True but this snapshot does not have grain size bins. Set import_sizes to False.")
     # Load data for star particles (ptype = 4)
     # For idealized sims, the initial stars are stored as ptype = 2 and 3 and need to be appended
     if not halo.sp.cosmological: append_dummies=True
@@ -288,5 +287,3 @@ def create_SKIRT_particle_files(snap_dir,
         f.close()
 
         print(f"Gas/Dust data written to {dust_file_name}...")
-
-

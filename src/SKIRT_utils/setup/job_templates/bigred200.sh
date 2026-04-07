@@ -17,7 +17,7 @@
 # There is a total of 128 cores per node so (ntasks-per-node) * (cpus-per-task) should always be less than or equal to 128.
 # Max RAM is 256 GB.
 
-export OMP_NUM_THREADS={task_per_node}
+export OMP_NUM_THREADS={tasks_per_node}
 date
 module list
 

@@ -105,11 +105,9 @@ def format_ski_file(
     else: include_CMB_heating = "false"
 
     # For non-zero redshift snapshots, present-day observers are symbolized by an observer distance of zero. 
-    # However, at z!=0 SKIRT with throw a fatal error. 
+    # However, at z!=0 SKIRT will throw a fatal error. 
     # To get around this for the z=0 snapshot, override its redshift to a small value.
     # More info at https://skirt.ugent.be/root/_user_redshift.html
-    # Important note for high-z, CMB heating of dust is off by default in this example.
-    # To turn it on set includeHeatingByCMB="true" in DustEmissionOptions
     if z==0 or (FIRE_ver==2 and snapnum == 600) or (FIRE_ver==3 and snapnum == 500):
         z = 0.003 # corresponds to a luminosity distance of ~13 Mpc
         print(f"WARNING: Overriding redshift for snapnum {snapnum} to {z = } so observer instruments are at non-zero distance from object.")
@@ -153,7 +151,7 @@ def format_ski_file(
     )
 
     # Set arbitrary distance to the object in Mpc
-    d_to_source = 10.0  # only used for rest-frame instruments with flat all other instruments have distance set by redshift
+    d_to_source = 10.0  # only used for rest-frame instruments with flat cosmology, all other instruments have distance set by redshift
 
     # Define limits for relevant wavelength ranges used in SKIRT
 
@@ -191,10 +189,20 @@ def format_ski_file(
     # -------
 
     # Determines name of template file which matches requested SKIRT mode and medium grid
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    template_dirc = os.path.join(current_dir, "ski_templates/")
+    # user defined template
     if set_template_file != '':
-        ski_template_filepath = set_template_file
+        # Check if template files exists at given path or in template directory
+        if os.path.exists(set_template_file):
+            ski_template_filepath = set_template_file
+        elif os.path.exists(os.path.join(template_dirc, set_template_file)):
+            ski_template_filepath = os.path.join(template_dirc, set_template_file)
+        else:
+            raise ValueError(f"set_template_file given as '{set_template_file}' but no file found at this path or in the template directory.")
+    # auto-select template based on SKIRT mode and medium grid
     else:
-        template_dirc = "./ski_templates/default/"
+        template_dirc = os.path.join(template_dirc, "default/")
         template_files = [file for file in os.listdir(template_dirc) if os.path.isfile(os.path.join(template_dirc, file))]
         ski_template_filepath=False
         for file in template_files:
@@ -320,11 +328,14 @@ def format_ski_file(
         # Find all placeholders in template and look for any that are missing in the dictionary
         formatter = Formatter()
         placeholders = [field_name for _, field_name, _, _ in formatter.parse(ski_template) if field_name]
-        diff = list(set(placeholders) ^ set(dict_placeholders.keys()))
+        diff = list(set(placeholders) - set(dict_placeholders.keys()))
         if len(diff) > 0:
             print(f"ERROR: The following placeholders are in the template but missing from the default dictionary: {diff}")
             print("Define desired values for these placeholders in the add_template_placeholders argument.")
             return
+        # diff = list(set(dict_placeholders.keys()) - set(placeholders))
+        # if len(diff) > 0:
+        #     print(f"WARNING: The following placeholders are in the default dictionary but missing from the template: {diff}")
 
         template = ski_template.format_map(dict_placeholders)
         f.write(template)
@@ -371,10 +382,10 @@ def format_job_script(
         Name of the computer cluster used to determine job template.
     """
 
-
-    job_template_filepath = './job_templates/'
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    job_template_filepath = os.path.join(current_dir, 'job_templates')
     if computer == "BigRed200":
-        job_template_filepath += 'bigred200.sh'
+        job_template_filepath += '/bigred200.sh'
     else:
         raise ValueError(f"Unknown computer: '{computer}'. No job template available.")
 
