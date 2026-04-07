@@ -45,7 +45,7 @@ def format_ski_file(
     dust_emission_type : str, optional
         Dust emission mode (e.g., "equilibrium" or "stochastic").
     medium_grid : str, optional
-        Dust medium grid used in SKIRT (e.g., "octtree" or "voronoi").
+        Dust medium grid used in SKIRT (e.g., "octtree" or "voronoi"). voronoi is only recommended for   low resolution instruments or SEDs.
     output_path : str, optional
         Path to the output file for the formatted ski file.
     cosmological : bool, optional
@@ -143,7 +143,6 @@ def format_ski_file(
             },
         )
 
-
     # Calculate the spatial scale in the simulation (in physical kpc) that
     # corresponds to 1 pixel
     default_kpc_per_pixel = (
@@ -200,16 +199,19 @@ def format_ski_file(
             ski_template_filepath = os.path.join(template_dirc, set_template_file)
         else:
             raise ValueError(f"set_template_file given as '{set_template_file}' but no file found at this path or in the template directory.")
-    # auto-select template based on SKIRT mode and medium grid
+    # auto-select template based on SKIRT mode and medium grid. note this there are only a handful of templates
     else:
         template_dirc = os.path.join(template_dirc, "default/")
         template_files = [file for file in os.listdir(template_dirc) if os.path.isfile(os.path.join(template_dirc, file))]
         ski_template_filepath=False
         for file in template_files:
-            if all(modes in file for modes in [skirt_sim_mode,medium_grid]):
-                ski_template_filepath = os.path.join(template_dirc, file)
+            if medium_grid not in file: continue
+            if skirt_sim_mode=='dust_emission' and 'emission' not in file: continue
+            elif skirt_sim_mode=='extinction_only' and 'extinction' not in file: continue
+            ski_template_filepath = os.path.join(template_dirc, file)
         if not ski_template_filepath:
             raise ValueError("No template matches requested SKIRT mode")
+        print(f"Using template file {ski_template_filepath} for SKIRT input formatting...")
 
     # Read the SKIRT input file template
     with open(ski_template_filepath, "r") as f:
