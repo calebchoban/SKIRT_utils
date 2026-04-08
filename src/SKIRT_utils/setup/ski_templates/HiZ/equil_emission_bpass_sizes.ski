@@ -85,7 +85,7 @@
        			    </FragmentDustMixDecorator>
 		        </materialMix>
                     </ParticleMedium>
-                    <ParticleMedium filename="dust_carbonaceous.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                    <ParticleMedium filename="dust_graphite.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
                             <CubicSplineSmoothingKernel/>
                         </smoothingKernel>

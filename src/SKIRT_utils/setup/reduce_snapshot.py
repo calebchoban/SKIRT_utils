@@ -271,9 +271,10 @@ def create_SKIRT_particle_files(snap_dir,
                 num_bins = spec_bins[k]
                 spec_m = spec_masses[k]
                 spec_weight = spec_weights[k]
-                line += "%.3e "%(spec_m[i])
+                line += "%.3e"%(spec_m[i])
                 for j in range(num_bins):
-                    line += "%.3e "%(spec_weight[i,j])
+                    line += " %.3e"%(spec_weight[i,j])
+                line += "\n"
             f.write(line)
         f.close()
 
