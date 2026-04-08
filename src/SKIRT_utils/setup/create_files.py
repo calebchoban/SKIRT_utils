@@ -63,7 +63,7 @@ def format_ski_file(
         Half field of view in kpc.
     max_temperature : float, optional
         Maximum temperature for the medium elements in the simulation. Unless
-        using a custom dust prescription (e.g. with a constant dust-to-metals
+        using a post-processed dust prescription (e.g. with a constant dust-to-metals
         ratio), this should always be set to 0.0 K.
     mass_fraction : float, optional
         Fraction of the total medium mass to include in the simulation. This
@@ -278,6 +278,7 @@ def format_ski_file(
                 numWavelengthsRad=f"{num_wavelengths_rad:d}",
                 massFraction=f"{mass_fraction:.4f}",
                 importMetallicity=f"{import_metallicity:s}",
+                importTemperature=f"{'true' if max_temperature > 0 else 'false'}",
                 maxTemperature=f"{max_temperature:.4f}",
                 minX=f"-{half_fov_pc:.4f}",
                 maxX=f"{half_fov_pc:.4f}",

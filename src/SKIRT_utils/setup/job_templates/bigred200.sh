@@ -27,7 +27,8 @@ export SKI_NAME="run.ski"
 mkdir output
 cp $SKI_NAME ./output/
 cp stars.dat ./output/
-cp dust.dat ./output/
+# move all dust files which can have various names
+find . -maxdepth 1 -name "*dust*.dat" -exec cp {{}} ./output/ \;
 cd output
 pwd
 

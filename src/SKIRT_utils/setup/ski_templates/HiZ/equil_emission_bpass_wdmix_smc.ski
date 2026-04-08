@@ -60,7 +60,7 @@
                     </DustEmissionOptions>
                 </dustEmissionOptions>
                 <media type="Medium">
-                    <ParticleMedium filename="dust.dat" massType="Mass" massFraction="{massFraction}" importMetallicity="{importMetallicity}" importTemperature="true" maxTemperature="{maxTemperature} K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                    <ParticleMedium filename="dust.dat" massType="Mass" massFraction="{massFraction}" importMetallicity="{importMetallicity}" importTemperature="{importTemperature}" maxTemperature="{maxTemperature} K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
                             <CubicSplineSmoothingKernel/>
                         </smoothingKernel>

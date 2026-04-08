@@ -206,10 +206,13 @@ def create_SKIRT_particle_files(snap_dir,
     # Need to save multiple files for grain size distributions
     if import_dust and import_sizes:
         dust_file_names = [dust_file_name.split('.dat')[0]+'_silicate.dat', dust_file_name.split('.dat')[0]+'_graphite.dat', dust_file_name.split('.dat')[0]+'_neutralPAH.dat']
+        spec_bins = [num_dust_bins,num_dust_bins,num_PAH_bins]
+        spec_masses = [m_sil, carb_mass, pah_mass]
+        spec_weights = [sil_bin_weight, carb_bin_weight, PAH_bin_weight]
     else:
         dust_file_names = [dust_file_name]
 
-    for file_name in dust_file_names:
+    for k,file_name in enumerate(dust_file_names):
         f = open(output_dir+"/"+file_name, 'w')
         # Make header for gas/dust with data columns matching specified properties
         # Position is always needed, smoothing length used for octtree grid, 
@@ -237,28 +240,19 @@ def create_SKIRT_particle_files(snap_dir,
                     '# Column %i: temperature (K)\n'%(column_num+2)  
             column_num+=3         
         elif import_dust and not import_species:
-            header += '# Column %i: dust mass (Msun)\n'%column_num + \
-                    '# Column %i: temperature (K)\n'%(column_num+1)
-            column_num+=2
+            header += '# Column %i: dust mass (Msun)\n'%column_num
         elif import_dust and import_species and not import_sizes:
             header += '# Column %i: silicate mass (Msun)\n'%column_num + \
                     '# Column %i: graphite mass (Msun)\n'%(column_num+1) + \
-                    '# Column %i: neutral PAH mass (Msun)\n'%(column_num+2) + \
-                    '# Column %i: temperature (K)\n'%(column_num+3)
-            column_num+=4
+                    '# Column %i: neutral PAH mass (Msun)\n'%(column_num+2)
+            column_num+=3
         elif import_dust and import_species and import_sizes:
-            if 'pah' in file_name:
-                num_bins = num_PAH_bins
-            else:
-                num_bins = num_dust_bins
-            grain_bin_edges = halo.sp.Grain_Bin_Edges
+            num_bins = spec_bins[k]
             header += '# Column %i: dust mass (Msun)\n'%column_num
             column_num +=1
             for j in range(num_bins):
                 header += '# Column %i: bin %i weight (1)\n'%(column_num,j+1)
                 column_num +=1
-            header += '# Column %i: temperature (K)\n'%(column_num) 
-            column_num +=1  
             
 
         f.write(header)
@@ -270,25 +264,16 @@ def create_SKIRT_particle_files(snap_dir,
             if not import_dust:
                 line += "%.3e %.3e %.3e\n" %(m_gas[i],Z[i],T[i])
             elif import_dust and not import_species:
-                line += "%.3e %.3e\n" %(m_dust[i],T[i]) 
+                line += "%.3e\n" %(m_dust[i]) 
             elif import_dust and import_species and not import_sizes:
-                line += "%.3e %.3e %.3e %.3e\n" %(m_sil[i], m_carb[i], m_pah[i], T[i])
+                line += "%.3e %.3e %.3e\n" %(m_sil[i], m_carb[i], m_pah[i])
             elif import_dust and import_species and import_sizes:
-                num_bins = num_dust_bins
-                if 'sil' in file_name:
-                    spec_m = m_sil
-                    spec_weights = sil_bin_weight
-                elif 'carb' in file_name:
-                    spec_m = carb_mass
-                    spec_weights = carb_bin_weight
-                elif 'pah' in file_name:
-                    num_bins = num_PAH_bins
-                    spec_m = pah_mass
-                    spec_weights = PAH_bin_weight
+                num_bins = spec_bins[k]
+                spec_m = spec_masses[k]
+                spec_weight = spec_weights[k]
                 line += "%.3e "%(spec_m[i])
                 for j in range(num_bins):
-                    line += "%.3e "%(spec_weights[i,j])
-                line += "%.3e\n" %(T[i])
+                    line += "%.3e "%(spec_weight[i,j])
             f.write(line)
         f.close()
 
