@@ -40,7 +40,7 @@ def format_ski_file(
     default_pixel_scale : float, optional
         Pixel scale in arcseconds per pixel for the default instrument images.
     skirt_sim_mode : str, optional
-        Simulation mode for SKIRT (e.g., "dust_emission" or "extinction_only").
+        Simulation mode for SKIRT (e.g., "emission" or "extinction").
     dust_emission_type : str, optional
         Dust emission mode (e.g., "equilibrium" or "stochastic").
     medium_grid : str, optional
@@ -158,7 +158,7 @@ def format_ski_file(
     # Define limits for relevant wavelength ranges used in SKIRT
 
     # 1. Define *rest-frame* wavelength range for sources (stars)
-    max_wavelength_source = 120.0  # microns;
+    max_wavelength_source = 200.0  # microns;
     min_wavelength_source = min_wavelength
 
     # 2. Define wavelength limits for dust emission and radiation field
@@ -168,11 +168,14 @@ def format_ski_file(
     num_wavelengths_dust_base = 100
     min_wavelength_dust_base, max_wavelength_dust_base = 0.2, 2e3
 
+    # Need finer wavelength binning for PAH features in MIR
     num_wavelengths_dust_sub = 200
     min_wavelength_dust_sub, max_wavelength_dust_sub = 3.0, 25.0
 
+    # This is the wavelength grid SKIRT stores radiation field info for each cell. 
+    # Can't be too large since this uses a lot of memory.
     num_wavelengths_rad = 50
-    min_wavelength_rad, max_wavelength_rad = 0.02, 90.0
+    min_wavelength_rad, max_wavelength_rad = min_wavelength_source, max_wavelength_source
 
     # 3. Define wavelength limits for *observer-frame* SED instruments
     min_wavelength_obs, max_wavelength_obs = (
@@ -209,8 +212,8 @@ def format_ski_file(
         ski_template_filepath=False
         for file in template_files:
             if medium_grid not in file: continue
-            if skirt_sim_mode=='dust_emission' and 'emission' not in file: continue
-            elif skirt_sim_mode=='extinction_only' and 'extinction' not in file: continue
+            if skirt_sim_mode=='emission' and 'emission' not in file: continue
+            elif skirt_sim_mode=='extinction' and 'extinction' not in file: continue
             ski_template_filepath = os.path.join(template_dirc, file)
         if not ski_template_filepath:
             raise ValueError("No template matches requested SKIRT mode")
