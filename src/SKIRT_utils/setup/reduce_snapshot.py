@@ -17,6 +17,7 @@ def create_SKIRT_particle_files(snap_dir,
                                 star_file_name='stars.dat', 
                                 dust_file_name='dust.dat', 
                                 max_box_coords=None,
+                                max_box_virial=False,
                                 set_principal_vectors=None):
     '''
     This function extracts and reduces the star particle and dust cell data from the specified simulation snapshot 
@@ -57,6 +58,8 @@ def create_SKIRT_particle_files(snap_dir,
         List of maximum x, y, z coordinates in kpc of star and gas/dust particles to be exported. 
         If None, all particles are included. If provided, the list should be in the form 
         [max_x, max_y, max_z].
+    max_box_virial : boolean, optional
+        If True, the maximum box coordinates will be set to the virial radius of the halo. This option overrides max_box_coords if both are provided.
     set_principal_vectors : 2d array, optional
         Set the principal vectors used to orient the galaxy. This is a 3x3 array where each row is a vector. The first row is the vector for the x-axis, the second row is the vector for the y-axis, and the third row is the vector for the z-axis. If None, the principal vectors will be determined from the halo. Use this if you want to use the same orientation for multiple snapshots or if you want to set a specific orientation. 
     '''
@@ -93,6 +96,11 @@ def create_SKIRT_particle_files(snap_dir,
     print("Calculating star particle smoothing lengths...")
     h = get_particle_hsml(x, y, z)
 
+    if max_box_virial:
+        if not use_halo_file:
+            raise ValueError("max_box_virial set to True but use_halo_file is not set to True. Set use_halo_file to True to use this option.")
+        max_box_coords = [halo.rvir, halo.rvir, halo.rvir]
+        print(f"Setting max box coordinates to virial radius of the halo: {halo.rvir} kpc")
 
     if max_box_coords is not None:
         coords = p4.get_property('position')
@@ -101,7 +109,7 @@ def create_SKIRT_particle_files(snap_dir,
         print(f"Applying mask to star particles with max box coordinates {max_box_coords} kpc")
         p4.mask(mask)
         h = h[mask]
-        box_string = f"All particles in a x {max_box_coords[0]} kpc by y {max_box_coords[1]} kpc by z {max_box_coords[2]} kpc box around the galactic center are included."
+        box_string = f"All particles in a x {max_box_coords[0]:.3f} kpc by y {max_box_coords[1]:.3f} kpc by z {max_box_coords[2]:.3f} kpc box around the galactic center are included."
     else:   
         box_string="All particles in the snapshot are included."
 
@@ -124,7 +132,20 @@ def create_SKIRT_particle_files(snap_dir,
     
     f = open(output_dir+"/"+star_file_name, 'w')
     # Write header for star file
+    snap_info = f"Snapshot number: {snap_num}, redshift: {halo.redshift:.3f}, from snapshot directory: {snap_dir}"
+    dust_info = ""
+    if import_dust:
+        if not import_species:
+            dust_info = "Imported total dust mass information."
+        elif import_species and not import_sizes:
+            dust_info = "Imported dust species information."
+        elif import_species and import_sizes:
+            dust_info = "Imported dust species and grain size distribution information."
+    else:
+        dust_info = "No dust information imported. A constant dust-to-metals ratio will be assumed by SKIRT."
+        
     header =    '# Star particle data\n' + \
+                '# ' + snap_info + '\n' + \
                 '# ' + box_string + '\n' + \
                 '# Column 1: position x (pc)\n' + \
                 '# Column 2: position y (pc)\n' + \
@@ -226,7 +247,9 @@ def create_SKIRT_particle_files(snap_dir,
         #      bin for each species.
         
         header =   '# Dust cell data\n' + \
+                '# ' + snap_info + '\n' + \
                 '# ' + box_string + '\n' + \
+                '# ' + dust_info + '\n' + \
                 '# Column 1: position x (pc)\n' + \
                 '# Column 2: position y (pc)\n' + \
                 '# Column 3: position z (pc)\n'
