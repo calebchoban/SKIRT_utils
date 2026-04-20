@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A SKIRT parameter file © Astronomical Observatory, Ghent University -->
+<skirt-simulation-hierarchy type="MonteCarloSimulation" format="9" producer="MakeUp v9.0 (git d762d4b built on 05/03/2026 at 16:09:41)" time="2026-04-09T17:43:15.960">
+    <MonteCarloSimulation userLevel="Regular" simulationMode="OligoExtinctionOnly" iteratePrimaryEmission="false" iterateSecondaryEmission="false" numPackets="{numPackets}">
+        <random type="Random">
+            <Random seed="0"/>
+        </random>
+        <units type="Units">
+            <ExtragalacticUnits wavelengthOutputStyle="Wavelength" fluxOutputStyle="Frequency"/>
+        </units>
+        <cosmology type="Cosmology">
+            <LocalUniverseCosmology/>
+        </cosmology>
+        <sourceSystem type="SourceSystem">
+            <SourceSystem minWavelength="0.09 micron" maxWavelength="100 micron" wavelengths="0.355 micron, 0.47 micron, 0.617 micron, 0.74899 micron" sourceBias="0.5">
+                <sources type="Source">
+                    <ParticleSource filename="star.dat" importVelocity="false" importVelocityDispersion="false" importCurrentMass="false" importBias="false" useColumns="" sourceWeight="1" wavelengthBias="0.5">
+                        <smoothingKernel type="SmoothingKernel">
+                            <CubicSplineSmoothingKernel/>
+                        </smoothingKernel>
+                        <sedFamily type="SEDFamily">
+                            <BpassSEDFamily imf="Kroupa100" resolution="Original"/>
+                        </sedFamily>
+                    </ParticleSource>
+                </sources>
+            </SourceSystem>
+        </sourceSystem>
+        <mediumSystem type="MediumSystem">
+            <MediumSystem>
+                <photonPacketOptions type="PhotonPacketOptions">
+                    <PhotonPacketOptions explicitAbsorption="false" forceScattering="true" minWeightReduction="1e4" minScattEvents="0" pathLengthBias="0.5"/>
+                </photonPacketOptions>
+                <radiationFieldOptions type="RadiationFieldOptions">
+                    <RadiationFieldOptions storeRadiationField="false"/>
+                </radiationFieldOptions>
+                <media type="Medium">
+                    <ParticleMedium filename="dust_silicate.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                        <smoothingKernel type="SmoothingKernel">
+                            <CubicSplineSmoothingKernel/>
+                        </smoothingKernel>
+                        <materialMix type="MaterialMix">
+                            <FragmentDustMixDecorator fragmentSizeBins="true">
+           			 <dustMix type="MultiGrainDustMix">
+            			     <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                			 <populations type="GrainPopulation">
+                                              <GrainPopulation numSizes="{numDustSizeBins}" normalizationType="DustMassPerHydrogenAtom"
+                                         dustMassPerHydrogenAtom="1.305623577e-29 kg">
+                       			        <composition type="GrainComposition">
+                            			    <DraineSilicateGrainComposition/>
+                                                </composition>
+                          		        <sizeDistribution type="GrainSizeDistribution">
+                         		            <PowerLawGrainSizeDistribution minSize="{minDustGrainSize} micron" maxSize="{maxDustGrainSize} micron"
+                                                               exponent="4"/>
+                          		         </sizeDistribution>
+                		              </GrainPopulation>
+             			         </populations>
+          			     </ConfigurableDustMix>
+    			        </dustMix>
+       			    </FragmentDustMixDecorator>
+		        </materialMix>
+                    </ParticleMedium>
+                    <ParticleMedium filename="dust_graphite.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                        <smoothingKernel type="SmoothingKernel">
+                            <CubicSplineSmoothingKernel/>
+                        </smoothingKernel>
+                        <materialMix type="MaterialMix">
+                            <FragmentDustMixDecorator fragmentSizeBins="true">
+           			 <dustMix type="MultiGrainDustMix">
+            			     <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                			 <populations type="GrainPopulation">
+                                              <GrainPopulation numSizes="{numDustSizeBins}" normalizationType="DustMassPerHydrogenAtom"
+                                         dustMassPerHydrogenAtom="1.305623577e-29 kg">
+                       			        <composition type="GrainComposition">
+                            			    <DraineGraphiteGrainComposition/>
+                                                </composition>
+                          		        <sizeDistribution type="GrainSizeDistribution">
+                         		            <PowerLawGrainSizeDistribution minSize="{minDustGrainSize} micron" maxSize="{maxDustGrainSize} micron"
+                                                               exponent="4"/>
+                          		         </sizeDistribution>
+                		              </GrainPopulation>
+             			         </populations>
+          			     </ConfigurableDustMix>
+    			        </dustMix>
+       			    </FragmentDustMixDecorator>
+		        </materialMix>
+                    </ParticleMedium>
+                    <ParticleMedium filename="dust_neutralPAH.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                        <smoothingKernel type="SmoothingKernel">
+                            <CubicSplineSmoothingKernel/>
+                        </smoothingKernel>
+                        <materialMix type="MaterialMix">
+                            <FragmentDustMixDecorator fragmentSizeBins="true">
+           			 <dustMix type="MultiGrainDustMix">
+            			     <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                			 <populations type="GrainPopulation">
+                                              <GrainPopulation numSizes="{numPAHSizeBins}" normalizationType="DustMassPerHydrogenAtom"
+                                         dustMassPerHydrogenAtom="1.305623577e-29 kg">
+                       			        <composition type="GrainComposition">
+                            			    <DraineNeutralPAHGrainComposition/>
+                                                </composition>
+                          		        <sizeDistribution type="GrainSizeDistribution">
+                         		            <PowerLawGrainSizeDistribution minSize="{minPAHGrainSize} micron" maxSize="{maxPAHGrainSize} micron"
+                                                               exponent="4"/>
+                          		         </sizeDistribution>
+                		              </GrainPopulation>
+             			         </populations>
+          			     </ConfigurableDustMix>
+    			        </dustMix>
+       			    </FragmentDustMixDecorator>
+		        </materialMix>
+                    </ParticleMedium>
+                </media>
+                <samplingOptions type="SamplingOptions">
+                    <SamplingOptions numDensitySamples="500" numPropertySamples="1" aggregateVelocity="Average"/>
+                </samplingOptions>
+                <grid type="SpatialGrid">
+                    <PolicyTreeSpatialGrid minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" treeType="OctTree">
+                        <policy type="TreePolicy">
+                            <DensityTreePolicy minLevel="{minTreeLevel}" maxLevel="{maxTreeLevel}" maxDustFraction="{maxDustFraction}" maxDustOpticalDepth="{maxDustOpticalDepth}" wavelength="0.55 micron" maxDustDensityDispersion="0" maxElectronFraction="1e-6" maxGasFraction="1e-6"/>
+                        </policy>
+                    </PolicyTreeSpatialGrid>
+                </grid>
+            </MediumSystem>
+        </mediumSystem>
+        <instrumentSystem type="InstrumentSystem">
+            <InstrumentSystem>
+                <instruments type="Instrument">
+                    <FullInstrument instrumentName="broadband_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <ConfigurableBandWavelengthGrid>
+                                <bands type="Band">
+                                    <BroadBand bandName="SLOAN_SDSS_U"/>
+                                    <BroadBand bandName="SLOAN_SDSS_G"/>
+                                    <BroadBand bandName="SLOAN_SDSS_R"/>
+                                    <BroadBand bandName="SLOAN_SDSS_I"/>
+                                </bands>
+                            </ConfigurableBandWavelengthGrid>
+                        </wavelengthGrid>
+                    </FullInstrument>
+                    <FullInstrument instrumentName="broadband_yz" distance="0 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <ConfigurableBandWavelengthGrid>
+                                <bands type="Band">
+                                    <BroadBand bandName="SLOAN_SDSS_U"/>
+                                    <BroadBand bandName="SLOAN_SDSS_G"/>
+                                    <BroadBand bandName="SLOAN_SDSS_R"/>
+                                    <BroadBand bandName="SLOAN_SDSS_I"/>
+                                </bands>
+                            </ConfigurableBandWavelengthGrid>
+                        </wavelengthGrid>
+                    </FullInstrument>
+                </instruments>
+            </InstrumentSystem>
+        </instrumentSystem>
+        <probeSystem type="ProbeSystem">
+            <ProbeSystem>
+                <probes type="Probe">
+                    <ConvergenceInfoProbe probeName="conv" wavelength="0.55 micron" probeAfter="Setup"/>
+                    <ImportedMediumDensityProbe probeName="import">
+                        <form type="GenericForm">
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                        </form>
+                    </ImportedMediumDensityProbe>
+                    <DensityProbe probeName="density" aggregation="Component" probeAfter="Setup">
+                        <form type="Form">
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                        </form>
+                    </DensityProbe>
+                    <OpticalMaterialPropertiesProbe probeName="optical_props"/>
+                    <DustGrainPopulationsProbe probeName="dust_grain_pop"/>
+                    <DustGrainSizeDistributionProbe probeName="dust_grain_size" numSamples="{numDustSizeBins}"/>
+                    <SpatialCellPropertiesProbe probeName="grid" wavelength="0.55 micron" probeAfter="Setup"/>                    
+                </probes>
+            </ProbeSystem>
+        </probeSystem>
+    </MonteCarloSimulation>
+</skirt-simulation-hierarchy>

@@ -17,20 +17,11 @@
 # There is a total of 128 cores per node so (ntasks-per-node) * (cpus-per-task) should always be less than or equal to 128.
 # Max RAM is 256 GB.
 
-export OMP_NUM_THREADS={tasks_per_node}
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 date
 module list
 
 export SKI_NAME="run.ski"
-
-# Make a new folder for the output and copy all the files SKIRT uses into it
-mkdir output
-cp $SKI_NAME ./output/
-cp stars.dat ./output/
-# move all dust files which can have various names
-find . -maxdepth 1 -name "*dust*.dat" -exec cp {{}} ./output/ \;
-cd output
-pwd
 
 # Print out the SLURM info
 echo $SLURM_JOB_NUM_NODES

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- A SKIRT parameter file © Astronomical Observatory, Ghent University -->
 <skirt-simulation-hierarchy type="MonteCarloSimulation" format="9" producer="SKIRT v9.0 (git 09eb9e8 built on 16/05/2025 at 10:43:04)" time="2025-09-08T15:13:38.962">
-    <MonteCarloSimulation userLevel="Regular" simulationMode="DustEmission" iteratePrimaryEmission="false" iterateSecondaryEmission="true" numPackets="{numPackets}">
+    <MonteCarloSimulation userLevel="Regular" simulationMode="ExtinctionOnly" iteratePrimaryEmission="false" iterateSecondaryEmission="false" numPackets="{numPackets}">
         <random type="Random">
             <Random seed="0"/>
         </random>
@@ -19,7 +19,7 @@
                             <CubicSplineSmoothingKernel/>
                         </smoothingKernel>
                         <sedFamily type="SEDFamily">
-                            <Starburst99SEDFamily/>
+                            <BpassSEDFamily imf="Kroupa100" resolution="Original"/>
                         </sedFamily>
                         <wavelengthBiasDistribution type="WavelengthDistribution">
                             <DefaultWavelengthDistribution/>
@@ -40,33 +40,81 @@
                         </radiationFieldWLG>
                     </RadiationFieldOptions>
                 </radiationFieldOptions>
-                <secondaryEmissionOptions type="SecondaryEmissionOptions">
-                    <SecondaryEmissionOptions storeEmissionRadiationField="true" secondaryPacketsMultiplier="1" spatialBias="0.5" sourceBias="0.5"/>
-                </secondaryEmissionOptions>
-                <iterationOptions type="IterationOptions">
-                    <IterationOptions minPrimaryIterations="1" maxPrimaryIterations="10" minSecondaryIterations="1" maxSecondaryIterations="3" includePrimaryEmission="false" primaryIterationPacketsMultiplier="1" secondaryIterationPacketsMultiplier="1"/>
-                </iterationOptions>
-                <dustEmissionOptions type="DustEmissionOptions">
-                    <DustEmissionOptions dustEmissionType="{dustEmissionType}" includeHeatingByCMB="{includeHeatingByCMB}" maxFractionOfPrimary="0.01" maxFractionOfPrevious="0.03" sourceWeight="1" wavelengthBias="0.5">
-                        <cellLibrary type="SpatialCellLibrary">
-                            <AllCellsLibrary/>
-                        </cellLibrary>
-                        <dustEmissionWLG type="DisjointWavelengthGrid">
-                            <NestedLogWavelengthGrid minWavelengthBaseGrid="{minWavelengthBaseGridDust} micron" maxWavelengthBaseGrid="{maxWavelengthBaseGridDust} micron" numWavelengthsBaseGrid="{numWavelengthsBaseGridDust}" minWavelengthSubGrid="{minWavelengthSubGridDust} micron" maxWavelengthSubGrid="{maxWavelengthSubGridDust} micron" numWavelengthsSubGrid="{numWavelengthsSubGridDust}"/>
-                        </dustEmissionWLG>
-                        <wavelengthBiasDistribution type="WavelengthDistribution">
-                            <DefaultWavelengthDistribution/>
-                        </wavelengthBiasDistribution>
-                    </DustEmissionOptions>
-                </dustEmissionOptions>
                 <media type="Medium">
-                    <ParticleMedium filename="dust.dat" massType="Mass" massFraction="{massFraction}" importMetallicity="{importMetallicity}" importTemperature="true" maxTemperature="{maxTemperature} K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                    <ParticleMedium filename="dust_silicate.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
                             <CubicSplineSmoothingKernel/>
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
-                            <WeingartnerDraineDustMix environment="MilkyWay" numSilicateSizes="10" numGraphiteSizes="10" numPAHSizes="10"/>
-                        </materialMix>
+                            <FragmentDustMixDecorator fragmentSizeBins="true">
+           			 <dustMix type="MultiGrainDustMix">
+            			     <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                			 <populations type="GrainPopulation">
+                                              <GrainPopulation numSizes="{numDustSizeBins}" normalizationType="DustMassPerHydrogenAtom"
+                                         dustMassPerHydrogenAtom="1.305623577e-29 kg">
+                       			        <composition type="GrainComposition">
+                            			    <DraineSilicateGrainComposition/>
+                                                </composition>
+                          		        <sizeDistribution type="GrainSizeDistribution">
+                         		            <PowerLawGrainSizeDistribution minSize="{minDustGrainSize} micron" maxSize="{maxDustGrainSize} micron"
+                                                               exponent="4"/>
+                          		         </sizeDistribution>
+                		              </GrainPopulation>
+             			         </populations>
+          			     </ConfigurableDustMix>
+    			        </dustMix>
+       			    </FragmentDustMixDecorator>
+		        </materialMix>
+                    </ParticleMedium>
+                    <ParticleMedium filename="dust_graphite.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                        <smoothingKernel type="SmoothingKernel">
+                            <CubicSplineSmoothingKernel/>
+                        </smoothingKernel>
+                        <materialMix type="MaterialMix">
+                            <FragmentDustMixDecorator fragmentSizeBins="true">
+           			 <dustMix type="MultiGrainDustMix">
+            			     <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                			 <populations type="GrainPopulation">
+                                              <GrainPopulation numSizes="{numDustSizeBins}" normalizationType="DustMassPerHydrogenAtom"
+                                         dustMassPerHydrogenAtom="1.305623577e-29 kg">
+                       			        <composition type="GrainComposition">
+                            			    <DraineGraphiteGrainComposition/>
+                                                </composition>
+                          		        <sizeDistribution type="GrainSizeDistribution">
+                         		            <PowerLawGrainSizeDistribution minSize="{minDustGrainSize} micron" maxSize="{maxDustGrainSize} micron"
+                                                               exponent="4"/>
+                          		         </sizeDistribution>
+                		              </GrainPopulation>
+             			         </populations>
+          			     </ConfigurableDustMix>
+    			        </dustMix>
+       			    </FragmentDustMixDecorator>
+		        </materialMix>
+                    </ParticleMedium>
+                    <ParticleMedium filename="dust_neutralPAH.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                        <smoothingKernel type="SmoothingKernel">
+                            <CubicSplineSmoothingKernel/>
+                        </smoothingKernel>
+                        <materialMix type="MaterialMix">
+                            <FragmentDustMixDecorator fragmentSizeBins="true">
+           			 <dustMix type="MultiGrainDustMix">
+            			     <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                			 <populations type="GrainPopulation">
+                                              <GrainPopulation numSizes="{numPAHSizeBins}" normalizationType="DustMassPerHydrogenAtom"
+                                         dustMassPerHydrogenAtom="1.305623577e-29 kg">
+                       			        <composition type="GrainComposition">
+                            			    <DraineNeutralPAHGrainComposition/>
+                                                </composition>
+                          		        <sizeDistribution type="GrainSizeDistribution">
+                         		            <PowerLawGrainSizeDistribution minSize="{minPAHGrainSize} micron" maxSize="{maxPAHGrainSize} micron"
+                                                               exponent="4"/>
+                          		         </sizeDistribution>
+                		              </GrainPopulation>
+             			         </populations>
+          			     </ConfigurableDustMix>
+    			        </dustMix>
+       			    </FragmentDustMixDecorator>
+		        </materialMix>
                     </ParticleMedium>
                 </media>
                 <samplingOptions type="SamplingOptions">
@@ -133,23 +181,6 @@
                                     <BroadBand bandName="HST_ACS_HRC_F606W"/>
                                     <BroadBand bandName="HST_ACS_HRC_F775W"/>
                                     <BroadBand bandName="HST_ACS_HRC_F814W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F070W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F090W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F115W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F150W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F200W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F277W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F356W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F444W"/>
-                                    <BroadBand bandName="JWST_MIRI_F560W"/>
-                                    <BroadBand bandName="JWST_MIRI_F1000W"/>
-                                    <BroadBand bandName="JWST_MIRI_F1500W"/>
-                                    <BroadBand bandName="JWST_MIRI_F2550W"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_70"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_100"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_160"/>
-                                    <BroadBand bandName="HERSCHEL_SPIRE_250"/>
-                                    <BroadBand bandName="HERSCHEL_SPIRE_350"/>
                                 </bands>
                             </ConfigurableBandWavelengthGrid>
                         </wavelengthGrid>
@@ -180,23 +211,6 @@
                                     <BroadBand bandName="HST_ACS_HRC_F606W"/>
                                     <BroadBand bandName="HST_ACS_HRC_F775W"/>
                                     <BroadBand bandName="HST_ACS_HRC_F814W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F070W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F090W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F115W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F150W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F200W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F277W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F356W"/>
-                                    <BroadBand bandName="JWST_NIRCAM_F444W"/>
-                                    <BroadBand bandName="JWST_MIRI_F560W"/>
-                                    <BroadBand bandName="JWST_MIRI_F1000W"/>
-                                    <BroadBand bandName="JWST_MIRI_F1500W"/>
-                                    <BroadBand bandName="JWST_MIRI_F2550W"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_70"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_100"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_160"/>
-                                    <BroadBand bandName="HERSCHEL_SPIRE_250"/>
-                                    <BroadBand bandName="HERSCHEL_SPIRE_350"/>
                                 </bands>
                             </ConfigurableBandWavelengthGrid>
                         </wavelengthGrid>
@@ -208,47 +222,20 @@
             <ProbeSystem>
                 <probes type="Probe">
                     <ConvergenceInfoProbe probeName="conv" wavelength="0.55 micron" probeAfter="Setup"/>
-                    <DensityProbe probeName="density" aggregation="Type" probeAfter="Setup">
-                        <form type="Form">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </DensityProbe>
-                    <TemperatureProbe probeName="temperature" aggregation="Type" probeAfter="Run">
-                        <form type="Form">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </TemperatureProbe>
-                    <InstrumentWavelengthGridProbe probeName="instr_waves"/>
-                    <ImportedSourceDensityProbe probeName="imp_source_den" massType="CurrentMass">
+                    <ImportedMediumDensityProbe probeName="import">
                         <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </ImportedSourceDensityProbe>
-                    <ImportedSourceMetallicityProbe probeName="imp_source_met" weight="CurrentMass" wavelength="0.55 micron">
-                        <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </ImportedSourceMetallicityProbe>
-                    <ImportedSourceAgeProbe probeName="imp_source_age" weight="CurrentMass" wavelength="0.55 micron">
-                        <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </ImportedSourceAgeProbe>
-                    <ImportedMediumDensityProbe probeName="imp_medium_den">
-                        <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumDensityProbe>
-                    <ImportedMediumMetallicityProbe probeName="imp_medium_met">
-                        <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                    <DensityProbe probeName="density" aggregation="Component" probeAfter="Setup">
+                        <form type="Form">
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
-                    </ImportedMediumMetallicityProbe>
-                    <ImportedMediumTemperatureProbe probeName="imp_medium_temp">
-                        <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </ImportedMediumTemperatureProbe>
+                    </DensityProbe>
+                    <OpticalMaterialPropertiesProbe probeName="optical_props"/>
+                    <DustGrainPopulationsProbe probeName="dust_grain_pop"/>
+                    <DustGrainSizeDistributionProbe probeName="dust_grain_size" numSamples="{numDustSizeBins}"/>
+                    <SpatialCellPropertiesProbe probeName="grid" wavelength="0.55 micron" probeAfter="Setup"/>
                 </probes>
             </ProbeSystem>
         </probeSystem>

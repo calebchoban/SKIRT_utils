@@ -19,7 +19,7 @@
                             <CubicSplineSmoothingKernel/>
                         </smoothingKernel>
                         <sedFamily type="SEDFamily">
-                            <Starburst99SEDFamily/>
+                            <BpassSEDFamily imf="Kroupa100" resolution="Original"/>
                         </sedFamily>
                         <wavelengthBiasDistribution type="WavelengthDistribution">
                             <DefaultWavelengthDistribution/>
@@ -60,24 +60,17 @@
                     </DustEmissionOptions>
                 </dustEmissionOptions>
                 <media type="Medium">
-                    <ParticleMedium filename="dust.dat" massType="Mass" massFraction="{massFraction}" importMetallicity="{importMetallicity}" importTemperature="true" maxTemperature="{maxTemperature} K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
-                        <smoothingKernel type="SmoothingKernel">
-                            <CubicSplineSmoothingKernel/>
-                        </smoothingKernel>
+                    <VoronoiMeshMedium filename="dust.dat" minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" massType="Mass" massFraction="{massFraction}" importMetallicity="{importMetallicity}" importTemperature="{importTemperature}" maxTemperature="{maxTemperature} K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="position x,position y, position z, dust mass">
                         <materialMix type="MaterialMix">
                             <WeingartnerDraineDustMix environment="MilkyWay" numSilicateSizes="10" numGraphiteSizes="10" numPAHSizes="10"/>
                         </materialMix>
-                    </ParticleMedium>
+                    </VoronoiMeshMedium>
                 </media>
                 <samplingOptions type="SamplingOptions">
                     <SamplingOptions numDensitySamples="500" numPropertySamples="1" aggregateVelocity="Average"/>
                 </samplingOptions>
                 <grid type="SpatialGrid">
-                    <PolicyTreeSpatialGrid minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" treeType="OctTree">
-                        <policy type="TreePolicy">
-                            <DensityTreePolicy minLevel="{minTreeLevel}" maxLevel="{maxTreeLevel}" maxDustFraction="{maxDustFraction}" maxDustOpticalDepth="{maxDustOpticalDepth}" wavelength="0.55 micron" maxDustDensityDispersion="0" maxElectronFraction="1e-6" maxGasFraction="1e-6"/>
-                        </policy>
-                    </PolicyTreeSpatialGrid>
+                    <VoronoiMeshSpatialGrid minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" policy="ImportedSites" numSites="500" filename="" relaxSites="false"/>
                 </grid>
             </MediumSystem>
         </mediumSystem>
@@ -87,52 +80,45 @@
                     <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                 </defaultWavelengthGrid>
                 <instruments type="Instrument">
-                    <SEDInstrument instrumentName="rest_i00_a00_r00" distance="{distance} Mpc" inclination="0 deg" azimuth="0 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                    <SEDInstrument instrumentName="restframe_sed_xy" distance="{distance} Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
                             <LogWavelengthGrid minWavelength="{minWavelengthRest} micron" maxWavelength="{maxWavelengthRest} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
-                    <SEDInstrument instrumentName="obs_i00_a00_r00" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                    <SEDInstrument instrumentName="restframe_sed_xz" distance="{distance} Mpc" inclination="90 deg" azimuth="-90 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogWavelengthGrid minWavelength="{minWavelengthRest} micron" maxWavelength="{maxWavelengthRest} micron" numWavelengths="{numWavelengths}"/>
+                        </wavelengthGrid>
+                    </SEDInstrument>
+                    <SEDInstrument instrumentName="restframe_sed_yz" distance="{distance} Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogWavelengthGrid minWavelength="{minWavelengthRest} micron" maxWavelength="{maxWavelengthRest} micron" numWavelengths="{numWavelengths}"/>
+                        </wavelengthGrid>
+                    </SEDInstrument>
+                    <SEDInstrument instrumentName="obsframe_sed_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
                             <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
-                    <SEDInstrument instrumentName="obs_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                    <SEDInstrument instrumentName="obsframe_sed_xz" distance="0 Mpc" inclination="90 deg" azimuth="-90 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
                             <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
-                    <SEDInstrument instrumentName="obs_yz" distance="0 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                    <SEDInstrument instrumentName="obsframe_sed_yz" distance="0 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" radius="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
                             <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
-                    <FullInstrument instrumentName="broadband_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                    <FrameInstrument instrumentName="highres_datacube_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
+                        </wavelengthGrid>
+                    </FrameInstrument>
+                    <FrameInstrument instrumentName="JWST_broadband_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{JWSTNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{JWSTNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
                             <ConfigurableBandWavelengthGrid>
                                 <bands type="Band">
-                                    <BroadBand bandName="GALEX_GALEX_FUV"/>
-                                    <BroadBand bandName="GALEX_GALEX_NUV"/>
-                                    <BroadBand bandName="SLOAN_SDSS_U"/>
-                                    <BroadBand bandName="SLOAN_SDSS_G"/>
-                                    <BroadBand bandName="SLOAN_SDSS_R"/>
-                                    <BroadBand bandName="SLOAN_SDSS_I"/>
-                                    <BroadBand bandName="SLOAN_SDSS_Z"/>
-                                    <BroadBand bandName="RUBIN_LSST_U"/>
-                                    <BroadBand bandName="RUBIN_LSST_G"/>
-                                    <BroadBand bandName="RUBIN_LSST_R"/>
-                                    <BroadBand bandName="RUBIN_LSST_I"/>
-                                    <BroadBand bandName="RUBIN_LSST_Z"/>
-                                    <BroadBand bandName="RUBIN_LSST_Y"/>
-                                    <BroadBand bandName="EUCLID_VIS_VIS"/>
-                                    <BroadBand bandName="EUCLID_NISP_Y"/>
-                                    <BroadBand bandName="EUCLID_NISP_J"/>
-                                    <BroadBand bandName="EUCLID_NISP_H"/>
-                                    <BroadBand bandName="HST_ACS_HRC_F435W"/>
-                                    <BroadBand bandName="HST_ACS_HRC_F475W"/>
-                                    <BroadBand bandName="HST_ACS_HRC_F606W"/>
-                                    <BroadBand bandName="HST_ACS_HRC_F775W"/>
-                                    <BroadBand bandName="HST_ACS_HRC_F814W"/>
                                     <BroadBand bandName="JWST_NIRCAM_F070W"/>
                                     <BroadBand bandName="JWST_NIRCAM_F090W"/>
                                     <BroadBand bandName="JWST_NIRCAM_F115W"/>
@@ -145,41 +131,14 @@
                                     <BroadBand bandName="JWST_MIRI_F1000W"/>
                                     <BroadBand bandName="JWST_MIRI_F1500W"/>
                                     <BroadBand bandName="JWST_MIRI_F2550W"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_70"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_100"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_160"/>
-                                    <BroadBand bandName="HERSCHEL_SPIRE_250"/>
-                                    <BroadBand bandName="HERSCHEL_SPIRE_350"/>
                                 </bands>
                             </ConfigurableBandWavelengthGrid>
                         </wavelengthGrid>
-                    </FullInstrument>
-                    <FullInstrument instrumentName="broadband_yz" distance="0 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                    </FrameInstrument>
+                    <FrameInstrument instrumentName="JWST_broadband_yz" distance="0 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{JWSTNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{JWSTNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
                             <ConfigurableBandWavelengthGrid>
                                 <bands type="Band">
-                                    <BroadBand bandName="GALEX_GALEX_FUV"/>
-                                    <BroadBand bandName="GALEX_GALEX_NUV"/>
-                                    <BroadBand bandName="SLOAN_SDSS_U"/>
-                                    <BroadBand bandName="SLOAN_SDSS_G"/>
-                                    <BroadBand bandName="SLOAN_SDSS_R"/>
-                                    <BroadBand bandName="SLOAN_SDSS_I"/>
-                                    <BroadBand bandName="SLOAN_SDSS_Z"/>
-                                    <BroadBand bandName="RUBIN_LSST_U"/>
-                                    <BroadBand bandName="RUBIN_LSST_G"/>
-                                    <BroadBand bandName="RUBIN_LSST_R"/>
-                                    <BroadBand bandName="RUBIN_LSST_I"/>
-                                    <BroadBand bandName="RUBIN_LSST_Z"/>
-                                    <BroadBand bandName="RUBIN_LSST_Y"/>
-                                    <BroadBand bandName="EUCLID_VIS_VIS"/>
-                                    <BroadBand bandName="EUCLID_NISP_Y"/>
-                                    <BroadBand bandName="EUCLID_NISP_J"/>
-                                    <BroadBand bandName="EUCLID_NISP_H"/>
-                                    <BroadBand bandName="HST_ACS_HRC_F435W"/>
-                                    <BroadBand bandName="HST_ACS_HRC_F475W"/>
-                                    <BroadBand bandName="HST_ACS_HRC_F606W"/>
-                                    <BroadBand bandName="HST_ACS_HRC_F775W"/>
-                                    <BroadBand bandName="HST_ACS_HRC_F814W"/>
                                     <BroadBand bandName="JWST_NIRCAM_F070W"/>
                                     <BroadBand bandName="JWST_NIRCAM_F090W"/>
                                     <BroadBand bandName="JWST_NIRCAM_F115W"/>
@@ -192,15 +151,37 @@
                                     <BroadBand bandName="JWST_MIRI_F1000W"/>
                                     <BroadBand bandName="JWST_MIRI_F1500W"/>
                                     <BroadBand bandName="JWST_MIRI_F2550W"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_70"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_100"/>
-                                    <BroadBand bandName="HERSCHEL_PACS_160"/>
-                                    <BroadBand bandName="HERSCHEL_SPIRE_250"/>
-                                    <BroadBand bandName="HERSCHEL_SPIRE_350"/>
                                 </bands>
                             </ConfigurableBandWavelengthGrid>
                         </wavelengthGrid>
-                    </FullInstrument>
+                    </FrameInstrument>
+                    <FrameInstrument instrumentName="ALMA_broadband_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{ALMANumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{ALMANumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <ConfigurableBandWavelengthGrid>
+                                <bands type="Band">
+                                    <BroadBand bandName="ALMA_ALMA_5"/>
+                                    <BroadBand bandName="ALMA_ALMA_6"/>
+                                    <BroadBand bandName="ALMA_ALMA_7"/>
+                                    <BroadBand bandName="ALMA_ALMA_8"/>
+                                    <BroadBand bandName="ALMA_ALMA_9"/>
+                                </bands>
+                            </ConfigurableBandWavelengthGrid>
+                        </wavelengthGrid>
+                    </FrameInstrument>
+                    <FrameInstrument instrumentName="ALMA_broadband_yz" distance="0 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{ALMANumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{ALMANumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <ConfigurableBandWavelengthGrid>
+                                <bands type="Band">
+
+                                    <BroadBand bandName="ALMA_ALMA_5"/>
+                                    <BroadBand bandName="ALMA_ALMA_6"/>
+                                    <BroadBand bandName="ALMA_ALMA_7"/>
+                                    <BroadBand bandName="ALMA_ALMA_8"/>
+                                    <BroadBand bandName="ALMA_ALMA_9"/>
+                                </bands>
+                            </ConfigurableBandWavelengthGrid>
+                        </wavelengthGrid>
+                    </FrameInstrument>
                 </instruments>
             </InstrumentSystem>
         </instrumentSystem>
@@ -208,45 +189,40 @@
             <ProbeSystem>
                 <probes type="Probe">
                     <ConvergenceInfoProbe probeName="conv" wavelength="0.55 micron" probeAfter="Setup"/>
-                    <DensityProbe probeName="density" aggregation="Type" probeAfter="Setup">
-                        <form type="Form">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </DensityProbe>
-                    <TemperatureProbe probeName="temperature" aggregation="Type" probeAfter="Run">
-                        <form type="Form">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </TemperatureProbe>
-                    <InstrumentWavelengthGridProbe probeName="instr_waves"/>
-                    <ImportedSourceDensityProbe probeName="imp_source_den" massType="CurrentMass">
+                    <ImportedMediumDensityProbe probeName="import">
                         <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </ImportedSourceDensityProbe>
-                    <ImportedSourceMetallicityProbe probeName="imp_source_met" weight="CurrentMass" wavelength="0.55 micron">
-                        <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </ImportedSourceMetallicityProbe>
-                    <ImportedSourceAgeProbe probeName="imp_source_age" weight="CurrentMass" wavelength="0.55 micron">
-                        <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
-                        </form>
-                    </ImportedSourceAgeProbe>
-                    <ImportedMediumDensityProbe probeName="imp_medium_den">
-                        <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumDensityProbe>
+                    <DensityProbe probeName="density" aggregation="Component" probeAfter="Setup">
+                        <form type="Form">
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                        </form>
+                    </DensityProbe>
+                    <ImportedSourceDensityProbe probeName="imp_source_den" massType="CurrentMass">
+                        <form type="GenericForm">
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                        </form>
+                    </ImportedSourceDensityProbe>
+                    <SpatialCellPropertiesProbe probeName="grid" wavelength="0.55 micron" probeAfter="Setup"/>
+                    <RadiationFieldProbe probeName="rad_field" writeWavelengthGrid="true" probeAfter="Run">
+                        <form type="Form">
+                            <AtPositionsForm filename="dust.dat" useColumns=""/>
+                        </form>
+                    </RadiationFieldProbe>
+                    <TemperatureProbe probeName="temperature" aggregation="Type" probeAfter="Run">
+                        <form type="Form">
+                            <AtPositionsForm filename="dust.dat" useColumns=""/>
+                        </form>
+                    </TemperatureProbe>
                     <ImportedMediumMetallicityProbe probeName="imp_medium_met">
                         <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumMetallicityProbe>
                     <ImportedMediumTemperatureProbe probeName="imp_medium_temp">
                         <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumTemperatureProbe>
                 </probes>
