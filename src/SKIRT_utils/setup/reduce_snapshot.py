@@ -4,7 +4,6 @@ import numpy as np
 import importlib.util
 from crc_scripts.utils.stellar_hsml_utils import get_particle_hsml
 from crc_scripts.io.gizmo import load_halo
-from crc_scripts.io.particle import Particle
 
 def create_SKIRT_particle_files(snap_dir, 
                                 snap_num, 

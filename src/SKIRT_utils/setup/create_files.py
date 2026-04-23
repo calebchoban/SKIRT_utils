@@ -33,6 +33,8 @@ def format_ski_file(
     mass_fraction: float = 1.0,
     max_dust_frac: float = 1e-7,
     max_optical_depth: float = 0,
+    min_tree_level: int = 3,
+    max_tree_level: int = 20,
     set_template_file: str = '',
     snapshot_scale_factors: str = '',
     instrument_pixel_ang_scales: dict = {},
@@ -107,6 +109,10 @@ def format_ski_file(
         allowed in any grid cell. Default of 0 turns off this extra criterion.
         Caution should be used when setting this parameter as it can lead very 
         high memory usage.
+    min_tree_level : int, optional
+        When using medium_grid="octtree", this sets the minimum level of the octree grid (i.e. the maximum grid size). If you want finer detail for diffuse regions set this to a higher value.
+    max_tree_level : int, optional
+        When using medium_grid="octtree", this sets the maximum level of the octree grid (i.e. the minimum grid size). If you find many cells in the maximum level for a given max_dust_frac, you should increase this value.
     set_template_file : str, optional
         Path to a ski template file to use. Will override the auto-selected template.
     snapshot_scale_factors : str, optional
@@ -380,9 +386,6 @@ def format_ski_file(
                 )
         # Add extra placeholders from octtree medium grid
         if medium_grid == "octtree":
-            # min and max level of octtree allowed
-            min_tree_level = 3
-            max_tree_level = 20
             max_dust_frac = "{:g}".format(max_dust_frac) # convert to string
             dict_placeholders = dict_placeholders | SafeDict(
                     minTreeLevel=f"{min_tree_level:d}",
