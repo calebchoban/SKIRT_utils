@@ -27,6 +27,12 @@ Or in editable/development mode:
 pip install -e .
 ```
 
+### Dependencies
+
+JWST PSF functionality requires installation of the [stpsf](https://github.com/calebchoban/crc_scripts/) package.
+
+Instrument plotting (**/analysis/inst_plots**) functionality requires installation of the [crc_scripts](https://stpsf.readthedocs.io/en/latest/index.html) repository.
+
 ## Packages
 
 ### `data_reduction`
