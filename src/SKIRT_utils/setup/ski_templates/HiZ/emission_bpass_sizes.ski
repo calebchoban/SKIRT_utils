@@ -66,24 +66,24 @@
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
                             <FragmentDustMixDecorator fragmentSizeBins="true">
-           			 <dustMix type="MultiGrainDustMix">
-            			     <ConfigurableDustMix scatteringType="HenyeyGreenstein">
-                			 <populations type="GrainPopulation">
-                                              <GrainPopulation numSizes="{numDustSizeBins}" normalizationType="DustMassPerHydrogenAtom"
-                                         dustMassPerHydrogenAtom="1.305623577e-29 kg">
-                       			        <composition type="GrainComposition">
-                            			    <DraineSilicateGrainComposition/>
-                                                </composition>
-                          		        <sizeDistribution type="GrainSizeDistribution">
-                         		            <PowerLawGrainSizeDistribution minSize="{minDustGrainSize} micron" maxSize="{maxDustGrainSize} micron"
-                                                               exponent="4"/>
-                          		         </sizeDistribution>
-                		              </GrainPopulation>
-             			         </populations>
-          			     </ConfigurableDustMix>
-    			        </dustMix>
-       			    </FragmentDustMixDecorator>
-		        </materialMix>
+                                <dustMix type="MultiGrainDustMix">
+                                    <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                                        <populations type="GrainPopulation">
+                                            <GrainPopulation numSizes="{numDustSizeBins}" normalizationType="DustMassPerHydrogenAtom"
+                                                dustMassPerHydrogenAtom="1.305623577e-29 kg">
+                                                <composition type="GrainComposition">
+                                                    <DraineSilicateGrainComposition/>
+                                                        </composition>
+                                                <sizeDistribution type="GrainSizeDistribution">
+                                                    <PowerLawGrainSizeDistribution minSize="{minDustGrainSize} micron" maxSize="{maxDustGrainSize} micron"
+                                                                    exponent="4"/>
+                                                </sizeDistribution>
+                                            </GrainPopulation>
+                                        </populations>
+                                </ConfigurableDustMix>
+                                </dustMix>
+       			            </FragmentDustMixDecorator>
+		                </materialMix>
                     </ParticleMedium>
                     <ParticleMedium filename="dust_graphite.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
@@ -91,24 +91,24 @@
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
                             <FragmentDustMixDecorator fragmentSizeBins="true">
-           			 <dustMix type="MultiGrainDustMix">
-            			     <ConfigurableDustMix scatteringType="HenyeyGreenstein">
-                			 <populations type="GrainPopulation">
-                                              <GrainPopulation numSizes="{numDustSizeBins}" normalizationType="DustMassPerHydrogenAtom"
-                                         dustMassPerHydrogenAtom="1.305623577e-29 kg">
-                       			        <composition type="GrainComposition">
-                            			    <DraineGraphiteGrainComposition/>
-                                                </composition>
-                          		        <sizeDistribution type="GrainSizeDistribution">
-                         		            <PowerLawGrainSizeDistribution minSize="{minDustGrainSize} micron" maxSize="{maxDustGrainSize} micron"
-                                                               exponent="4"/>
-                          		         </sizeDistribution>
-                		              </GrainPopulation>
-             			         </populations>
-          			     </ConfigurableDustMix>
-    			        </dustMix>
-       			    </FragmentDustMixDecorator>
-		        </materialMix>
+           			            <dustMix type="MultiGrainDustMix">
+                                    <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                                        <populations type="GrainPopulation">
+                                            <GrainPopulation numSizes="{numDustSizeBins}" normalizationType="DustMassPerHydrogenAtom"
+                                                dustMassPerHydrogenAtom="1.305623577e-29 kg">
+                                                <composition type="GrainComposition">
+                                                    <DraineGraphiteGrainComposition/>
+                                                        </composition>
+                                                <sizeDistribution type="GrainSizeDistribution">
+                                                    <PowerLawGrainSizeDistribution minSize="{minDustGrainSize} micron" maxSize="{maxDustGrainSize} micron"
+                                                                    exponent="4"/>
+                                                </sizeDistribution>
+                                            </GrainPopulation>
+                                        </populations>
+                                    </ConfigurableDustMix>
+    			                </dustMix>
+       			            </FragmentDustMixDecorator>
+		                </materialMix>
                     </ParticleMedium>
                     <ParticleMedium filename="dust_neutralPAH.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
@@ -116,24 +116,49 @@
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
                             <FragmentDustMixDecorator fragmentSizeBins="true">
-           			 <dustMix type="MultiGrainDustMix">
-            			     <ConfigurableDustMix scatteringType="HenyeyGreenstein">
-                			 <populations type="GrainPopulation">
-                                              <GrainPopulation numSizes="{numPAHSizeBins}" normalizationType="DustMassPerHydrogenAtom"
-                                         dustMassPerHydrogenAtom="1.305623577e-29 kg">
-                       			        <composition type="GrainComposition">
-                            			    <DraineNeutralPAHGrainComposition/>
-                                                </composition>
-                          		        <sizeDistribution type="GrainSizeDistribution">
-                         		            <PowerLawGrainSizeDistribution minSize="{minPAHGrainSize} micron" maxSize="{maxPAHGrainSize} micron"
-                                                               exponent="4"/>
-                          		         </sizeDistribution>
-                		              </GrainPopulation>
-             			         </populations>
-          			     </ConfigurableDustMix>
-    			        </dustMix>
-       			    </FragmentDustMixDecorator>
-		        </materialMix>
+                                <dustMix type="MultiGrainDustMix">
+                                    <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                                        <populations type="GrainPopulation">
+                                            <GrainPopulation numSizes="{numPAHSizeBins}" normalizationType="DustMassPerHydrogenAtom"
+                                                dustMassPerHydrogenAtom="1.305623577e-29 kg">
+                                                <composition type="GrainComposition">
+                                                    <DraineNeutralPAHGrainComposition/>
+                                                        </composition>
+                                                <sizeDistribution type="GrainSizeDistribution">
+                                                    <PowerLawGrainSizeDistribution minSize="{minPAHGrainSize} micron" maxSize="{maxPAHGrainSize} micron"
+                                                                    exponent="4"/>
+                                                </sizeDistribution>
+                                            </GrainPopulation>
+                                        </populations>
+                                    </ConfigurableDustMix>
+                                </dustMix>
+                            </FragmentDustMixDecorator>
+                        </materialMix>
+                    </ParticleMedium>
+                    <ParticleMedium filename="dust_ionizedPAH.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                        <smoothingKernel type="SmoothingKernel">
+                            <CubicSplineSmoothingKernel/>
+                        </smoothingKernel>
+                        <materialMix type="MaterialMix">
+                            <FragmentDustMixDecorator fragmentSizeBins="true">
+                                <dustMix type="MultiGrainDustMix">
+                                    <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                                        <populations type="GrainPopulation">
+                                            <GrainPopulation numSizes="{numPAHSizeBins}" normalizationType="DustMassPerHydrogenAtom"
+                                                dustMassPerHydrogenAtom="1.305623577e-29 kg">
+                                                <composition type="GrainComposition">
+                                                    <DraineIonizedPAHGrainComposition/>
+                                                        </composition>
+                                                <sizeDistribution type="GrainSizeDistribution">
+                                                    <PowerLawGrainSizeDistribution minSize="{minPAHGrainSize} micron" maxSize="{maxPAHGrainSize} micron"
+                                                                    exponent="4"/>
+                                                </sizeDistribution>
+                                            </GrainPopulation>
+                                        </populations>
+                                    </ConfigurableDustMix>
+                                </dustMix>
+                            </FragmentDustMixDecorator>
+                        </materialMix>
                     </ParticleMedium>
                 </media>
                 <samplingOptions type="SamplingOptions">
@@ -209,6 +234,26 @@
                             </ConfigurableBandWavelengthGrid>
                         </wavelengthGrid>
                     </FrameInstrument>
+                    <FrameInstrument instrumentName="JWST_broadband_xz" distance="0 Mpc" inclination="90 deg" azimuth="-90 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{JWSTNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{JWSTNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <ConfigurableBandWavelengthGrid>
+                                <bands type="Band">
+                                    <BroadBand bandName="JWST_NIRCAM_F070W"/>
+                                    <BroadBand bandName="JWST_NIRCAM_F090W"/>
+                                    <BroadBand bandName="JWST_NIRCAM_F115W"/>
+                                    <BroadBand bandName="JWST_NIRCAM_F150W"/>
+                                    <BroadBand bandName="JWST_NIRCAM_F200W"/>
+                                    <BroadBand bandName="JWST_NIRCAM_F277W"/>
+                                    <BroadBand bandName="JWST_NIRCAM_F356W"/>
+                                    <BroadBand bandName="JWST_NIRCAM_F444W"/>
+                                    <BroadBand bandName="JWST_MIRI_F560W"/>
+                                    <BroadBand bandName="JWST_MIRI_F1000W"/>
+                                    <BroadBand bandName="JWST_MIRI_F1500W"/>
+                                    <BroadBand bandName="JWST_MIRI_F2550W"/>
+                                </bands>
+                            </ConfigurableBandWavelengthGrid>
+                        </wavelengthGrid>
+                    </FrameInstrument>
                     <FrameInstrument instrumentName="JWST_broadband_yz" distance="0 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{JWSTNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{JWSTNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
                             <ConfigurableBandWavelengthGrid>
@@ -230,6 +275,19 @@
                         </wavelengthGrid>
                     </FrameInstrument>
                     <FrameInstrument instrumentName="ALMA_broadband_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{ALMANumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{ALMANumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                        <wavelengthGrid type="WavelengthGrid">
+                            <ConfigurableBandWavelengthGrid>
+                                <bands type="Band">
+                                    <BroadBand bandName="ALMA_ALMA_5"/>
+                                    <BroadBand bandName="ALMA_ALMA_6"/>
+                                    <BroadBand bandName="ALMA_ALMA_7"/>
+                                    <BroadBand bandName="ALMA_ALMA_8"/>
+                                    <BroadBand bandName="ALMA_ALMA_9"/>
+                                </bands>
+                            </ConfigurableBandWavelengthGrid>
+                        </wavelengthGrid>
+                    </FrameInstrument>
+                    <FrameInstrument instrumentName="ALMA_broadband_xz" distance="0 Mpc" inclination="90 deg" azimuth="-90 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{ALMANumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{ALMANumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
                             <ConfigurableBandWavelengthGrid>
                                 <bands type="Band">

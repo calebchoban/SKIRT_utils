@@ -117,6 +117,25 @@
                             </ConfigurableDustMix>
                         </materialMix>
                     </ParticleMedium>
+                    <ParticleMedium filename="dust.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="position x,position y,position z,smoothing length,ionized PAH mass">
+                        <smoothingKernel type="SmoothingKernel">
+                            <CubicSplineSmoothingKernel/>
+                        </smoothingKernel>
+                        <materialMix type="MaterialMix">
+                            <ConfigurableDustMix scatteringType="HenyeyGreenstein">
+                                <populations type="GrainPopulation">
+                                    <GrainPopulation numSizes="10" normalizationType="FactorOnSizeDistribution" dustMassPerHydrogenAtom="0 Msun" dustMassPerHydrogenMass="0" factorOnSizeDistribution="1">
+                                        <composition type="GrainComposition">
+                                            <DraineIonizedPAHGrainComposition/>
+                                        </composition>
+                                        <sizeDistribution type="GrainSizeDistribution">
+                                            <ZubkoPAHGrainSizeDistribution/>
+                                        </sizeDistribution>
+                                    </GrainPopulation>
+                                </populations>
+                            </ConfigurableDustMix>
+                        </materialMix>
+                    </ParticleMedium>
                 </media>
                 <samplingOptions type="SamplingOptions">
                     <SamplingOptions numDensitySamples="500" numPropertySamples="1" aggregateVelocity="Average"/>

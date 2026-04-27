@@ -108,7 +108,7 @@ def create_SKIRT_particle_files(snap_dir,
         print(f"Applying mask to star particles with max box coordinates {max_box_coords} kpc")
         p4.mask(mask)
         h = h[mask]
-        box_string = f"All particles in a x {max_box_coords[0]:.3f} kpc by y {max_box_coords[1]:.3f} kpc by z {max_box_coords[2]:.3f} kpc box around the galactic center are included."
+        box_string = f"All particles in a (x-y-z) +/-{max_box_coords[0]:.3f} kpc x +/-{max_box_coords[1]:.3f} kpc x +/-{max_box_coords[2]:.3f} kpc box centered on the galactic center are included."
     else:   
         box_string="All particles in the snapshot are included."
 
@@ -132,16 +132,6 @@ def create_SKIRT_particle_files(snap_dir,
     f = open(output_dir+"/"+star_file_name, 'w')
     # Write header for star file
     snap_info = f"Snapshot number: {snap_num}, redshift: {halo.redshift:.3f}, from snapshot directory: {snap_dir}"
-    dust_info = ""
-    if import_dust:
-        if not import_species:
-            dust_info = "Imported total dust mass information."
-        elif import_species and not import_sizes:
-            dust_info = "Imported dust species information."
-        elif import_species and import_sizes:
-            dust_info = "Imported dust species and grain size distribution information."
-    else:
-        dust_info = "No dust information imported. A constant dust-to-metals ratio will be assumed by SKIRT."
         
     header =    '# Star particle data\n' + \
                 '# ' + snap_info + '\n' + \
@@ -172,6 +162,18 @@ def create_SKIRT_particle_files(snap_dir,
         print(f"Applying mask to gas particles with max box coordinates {max_box_coords} kpc")
         p0.mask(mask)
 
+
+    dust_info = ""
+    if import_dust:
+        if not import_species:
+            dust_info = "Imported total dust mass information."
+        elif import_species and not import_sizes:
+            dust_info = "Imported dust species information."
+        elif import_species and import_sizes:
+            dust_info = "Imported dust species and grain size distribution information."
+    else:
+        dust_info = "No dust information imported. A constant dust-to-metals ratio will be assumed by SKIRT."
+
     # x,y,x coordinates
     coords = p0.get_property('position')
     x, y, z = coords[:,0], coords[:,1], coords[:,2]
@@ -181,11 +183,14 @@ def create_SKIRT_particle_files(snap_dir,
     if import_dust and not import_species:
         # total dust mass
         m_dust = p0.get_property('M_dust')
+        dust_info = "Imported total dust mass information."
     elif import_dust and import_species and not import_sizes:
         # silicate dust mass, carbonaceous dust mass, neutral PAH dust mass
         # Set the fraction of the carbonaceous dust mass that is in neutral PAHs since they are not explicitly tracked.
         pah_frac = 0.1 
-        m_sil, m_carb, m_pah = p0.get_property('M_sil+'), (1-pah_frac)*p0.get_property('M_carb'), pah_frac*p0.get_property('M_carb')
+        neut_frac = 0.5 # fraction of PAHs that are neutral vs ionized
+        m_sil, m_carb, m_neut_pah, m_ion_pah = p0.get_property('M_sil+'), (1-pah_frac)*p0.get_property('M_carb'), pah_frac*neut_frac*p0.get_property('M_carb'), pah_frac*(1-neut_frac)*p0.get_property('M_carb')
+        dust_info = f"Imported dust species information. Assumed {pah_frac} PAH mass fraction of carbonaceous dust and {neut_frac} mass fraction of PAHs that are neutral."
     elif import_dust and import_species and import_sizes:
         # silicate, carbonaceous, and PAH dust masses and dust size distributions
         # Need to separate PAHs from general carbonaceous dust since they are not explicitly tracked.
@@ -193,6 +198,7 @@ def create_SKIRT_particle_files(snap_dir,
         # Global grain bin info
         num_dust_bins = halo.sp.Flag_GrainSizeBins
         grain_bin_edges = halo.sp.Grain_Bin_Edges
+        grain_bin_centers = halo.sp.Grain_Bin_Centers
         # Dust species info
         snap_species = halo.sp.dust_species
         spec_indices = halo.sp.dust_species_indices
@@ -210,14 +216,22 @@ def create_SKIRT_particle_files(snap_dir,
 
         max_PAH_size = 1.3e-3 # microns, this is the size below which grains are considered PAHs. For the fiducial Nbin=16, this corresponds to the 2 smallest grain size bins
         pah_bin_cut = np.where(grain_bin_edges <= max_PAH_size)[0][-1] # index of the last grain size bin that is considered a PAH
+        pah_bin_centers = grain_bin_centers[:pah_bin_cut+1]
         num_PAH_bins = pah_bin_cut + 1
         print(f"Separating PAHs from carbonaceous dust using a max PAH size of {max_PAH_size} microns which corresponds to the {num_PAH_bins} smallest grain size bins.")
         pah_bin_mass = np.copy(carb_bin_mass[:,:pah_bin_cut+1])
-        pah_mass = np.sum(pah_bin_mass, axis=1)
-        PAH_bin_weight = pah_bin_mass/pah_mass[:,np.newaxis] * num_PAH_bins # mass weights for each PAH grain size bin
+        # Dividing PAHs into neutral and ionized PAHs based on their size. Following Eq. 19 in Hensely & Draine 2023.
+        f_ion = 1 - 1 / (1+pah_bin_centers/(10E-4))
+        neut_PAH_bin_mass = pah_bin_mass * (1-f_ion)[np.newaxis,:]
+        ion_PAH_bin_mass = pah_bin_mass * f_ion[np.newaxis,:]
+        neut_pah_mass = np.sum(neut_PAH_bin_mass, axis=1)
+        ion_pah_mass = np.sum(ion_PAH_bin_mass, axis=1)
+        neut_PAH_bin_weight = neut_PAH_bin_mass/neut_pah_mass[:,np.newaxis] * num_PAH_bins # mass weights for each neutral PAH grain size bin
+        ion_PAH_bin_weight = ion_PAH_bin_mass/ion_pah_mass[:,np.newaxis] * num_PAH_bins # mass weights for each ionized PAH grain size bin
         carb_bin_mass[:,:pah_bin_cut+1] = 0 # set the carbonaceous dust mass in the PAH bins to 0 since that mass is counted as PAH mass
         carb_mass = np.sum(carb_bin_mass, axis=1)
         carb_bin_weight = carb_bin_mass/carb_mass[:,np.newaxis] * (num_dust_bins) # mass weights for each carbonaceous grain size bin
+        dust_info = f"Imported dust species and grain size distribution information. max PAH size of {max_PAH_size:.2e} microns. Assumed PAH ionization fraction of f_ion = 1 - 1 / (1+grain_size/(10E-4)) following Hensley & Draine 2023."
     else:
         # gas mass, metallicity
         m_gas, Z = p0.get_property('M'), p0.get_property('Z_all')[:,0]
@@ -225,10 +239,14 @@ def create_SKIRT_particle_files(snap_dir,
 
     # Need to save multiple files for grain size distributions
     if import_dust and import_sizes:
-        dust_file_names = [dust_file_name.split('.dat')[0]+'_silicate.dat', dust_file_name.split('.dat')[0]+'_graphite.dat', dust_file_name.split('.dat')[0]+'_neutralPAH.dat']
-        spec_bins = [num_dust_bins,num_dust_bins,num_PAH_bins]
-        spec_masses = [m_sil, carb_mass, pah_mass]
-        spec_weights = [sil_bin_weight, carb_bin_weight, PAH_bin_weight]
+        dust_file_names = [dust_file_name.split('.dat')[0]+'_silicate.dat', 
+                           dust_file_name.split('.dat')[0]+'_graphite.dat', 
+                           dust_file_name.split('.dat')[0]+'_neutralPAH.dat',
+                           dust_file_name.split('.dat')[0]+'_ionizedPAH.dat'
+                           ]
+        spec_bins = [num_dust_bins,num_dust_bins,num_PAH_bins, num_PAH_bins]
+        spec_masses = [m_sil, carb_mass, neut_pah_mass, ion_pah_mass]
+        spec_weights = [sil_bin_weight, carb_bin_weight, neut_PAH_bin_weight, ion_PAH_bin_weight]
     else:
         dust_file_names = [dust_file_name]
 
@@ -266,8 +284,9 @@ def create_SKIRT_particle_files(snap_dir,
         elif import_dust and import_species and not import_sizes:
             header += '# Column %i: silicate mass (Msun)\n'%column_num + \
                     '# Column %i: graphite mass (Msun)\n'%(column_num+1) + \
-                    '# Column %i: neutral PAH mass (Msun)\n'%(column_num+2)
-            column_num+=3
+                    '# Column %i: neutral PAH mass (Msun)\n'%(column_num+2) + \
+                    '# Column %i: ionized PAH mass (Msun)\n'%(column_num+3)
+            column_num+=4
         elif import_dust and import_species and import_sizes:
             num_bins = spec_bins[k]
             header += '# Column %i: dust mass (Msun)\n'%column_num
@@ -288,7 +307,7 @@ def create_SKIRT_particle_files(snap_dir,
             elif import_dust and not import_species:
                 line += "%.3e\n" %(m_dust[i]) 
             elif import_dust and import_species and not import_sizes:
-                line += "%.3e %.3e %.3e\n" %(m_sil[i], m_carb[i], m_pah[i])
+                line += "%.3e %.3e %.3e %.3e\n" %(m_sil[i], m_carb[i], m_neut_pah[i], m_ion_pah[i])
             elif import_dust and import_species and import_sizes:
                 num_bins = spec_bins[k]
                 spec_m = spec_masses[k]
