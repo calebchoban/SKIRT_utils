@@ -189,8 +189,24 @@ def create_SKIRT_particle_files(snap_dir,
         # Set the fraction of the carbonaceous dust mass that is in neutral PAHs since they are not explicitly tracked.
         pah_frac = 0.1 
         neut_frac = 0.5 # fraction of PAHs that are neutral vs ionized
-        m_sil, m_carb, m_neut_pah, m_ion_pah = p0.get_property('M_sil+'), (1-pah_frac)*p0.get_property('M_carb'), pah_frac*neut_frac*p0.get_property('M_carb'), pah_frac*(1-neut_frac)*p0.get_property('M_carb')
-        dust_info = f"Imported dust species information. Assumed {pah_frac} PAH mass fraction of carbonaceous dust and {neut_frac} mass fraction of PAHs that are neutral."
+        m_dust = p0.get_property('M_dust')
+        m_silicate, m_graphite, m_pah_neutral, m_pah_ionized = p0.get_property('M_sil+'), (1-pah_frac)*p0.get_property('M_carb'), pah_frac*neut_frac*p0.get_property('M_carb'), pah_frac*(1-neut_frac)*p0.get_property('M_carb')
+        dust_info = f"Imported dust species information. Assumed {pah_frac} PAH mass fraction of carbonaceous dust and {neut_frac} mass fraction of PAHs that are neutral. Species weights are scaled to the Weingartner & Draine Milky Way dust mix."
+
+        # Calculate weights for each species.
+        # These weights are scaled to the built-in dust mass fractions for each species for a given dust mix in SKIRT.
+        # For our case we are using the Weingartner & Draine Milky Way dust mix. These values are given by the 
+        # DustGrainPopulationsProbe in SKIRT.
+        WD_MW_sil_mass_frac = 70.0580; # percentage
+        WD_MW_carb_mass_frac = 22.9405;
+        WD_MW_neutral_PAH_mass_frac = 3.5008;
+        WD_MW_ionized_PAH_mass_frac = 3.5008;
+    
+        silicate_weights = np.where(m_dust > 0, (m_silicate / m_dust)*100 / WD_MW_sil_mass_frac, 1.0)
+        graphite_weights = np.where(m_dust > 0, (m_graphite / m_dust)*100 / WD_MW_carb_mass_frac, 1.0)
+        pah_neutral_weights = np.where(m_dust > 0, (m_pah_neutral / m_dust)*100 / WD_MW_neutral_PAH_mass_frac, 1.0)
+        pah_ionized_weights = np.where(m_dust > 0, (m_pah_ionized / m_dust)*100 / WD_MW_ionized_PAH_mass_frac, 1.0)
+
     elif import_dust and import_species and import_sizes:
         # silicate, carbonaceous, and PAH dust masses and dust size distributions
         # Need to separate PAHs from general carbonaceous dust since they are not explicitly tracked.
@@ -282,11 +298,12 @@ def create_SKIRT_particle_files(snap_dir,
         elif import_dust and not import_species:
             header += '# Column %i: dust mass (Msun)\n'%column_num
         elif import_dust and import_species and not import_sizes:
-            header += '# Column %i: silicate mass (Msun)\n'%column_num + \
-                    '# Column %i: graphite mass (Msun)\n'%(column_num+1) + \
-                    '# Column %i: neutral PAH mass (Msun)\n'%(column_num+2) + \
-                    '# Column %i: ionized PAH mass (Msun)\n'%(column_num+3)
-            column_num+=4
+            header += '# Column %i: total mass (Msun)\n'%column_num + \
+                '# Column %i: silicate weight (1)\n'%(column_num+1) + \
+                '# Column %i: graphite weight (1)\n'%(column_num+2) + \
+                '# Column %i: neutral PAH weight (1)\n'%(column_num+3) + \
+                '# Column %i: ionized PAH weight (1)\n'%(column_num+4)
+            column_num+=5
         elif import_dust and import_species and import_sizes:
             num_bins = spec_bins[k]
             header += '# Column %i: dust mass (Msun)\n'%column_num
@@ -307,7 +324,8 @@ def create_SKIRT_particle_files(snap_dir,
             elif import_dust and not import_species:
                 line += "%.3e\n" %(m_dust[i]) 
             elif import_dust and import_species and not import_sizes:
-                line += "%.3e %.3e %.3e %.3e\n" %(m_sil[i], m_carb[i], m_neut_pah[i], m_ion_pah[i])
+                line += "%.3e "%(m_dust[i])
+                line += "%.3f %.3f %.3f %.3f\n" %(silicate_weights[i], graphite_weights[i], pah_neutral_weights[i], pah_ionized_weights[i])
             elif import_dust and import_species and import_sizes:
                 num_bins = spec_bins[k]
                 spec_m = spec_masses[k]
