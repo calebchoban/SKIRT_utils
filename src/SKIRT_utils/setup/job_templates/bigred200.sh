@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task={cpus_per_task}   # number of cpus per mpi task = OMP_NUM_THREADS.
 #SBATCH --mem={memory}           # Total RAM to be used by this job
 #SBATCH -t {walltime}         # Run time (hh:mm:ss)
-#SBATCH --mail-type=all     # Send email at begin and end of job
+#SBATCH --mail-type=end,fail     # Send email at begin and end of job
 #SBATCH -A r00380           # Project/Allocation name
 #SBATCH --mail-user={email}   # Email to send all jobs alters to
 #SBATCH -D .
@@ -35,6 +35,7 @@ echo $SLURM_CPUS_PER_TASK
 # -m argument adds the current memory usage for each task log output
 # -v argument makes each task log verbose outputting all the MPI chunk info
 # -e argument runs SKIRT in emulation mode to check the max memory usage of source and medium system.
-srun --ntasks-per-node=$SLURM_NTASKS_PER_NODE skirt -t $SLURM_CPUS_PER_TASK -m $SKI_NAME
+# -b batches output data in out.o. Full output available in log.txt file.
+srun --ntasks-per-node=$SLURM_NTASKS_PER_NODE skirt -t $SLURM_CPUS_PER_TASK -m -b $SKI_NAME
 date
 exit

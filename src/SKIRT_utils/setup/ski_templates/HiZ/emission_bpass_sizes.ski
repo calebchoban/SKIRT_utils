@@ -44,10 +44,10 @@
                     <SecondaryEmissionOptions storeEmissionRadiationField="true" secondaryPacketsMultiplier="1" spatialBias="0.5" sourceBias="0.5"/>
                 </secondaryEmissionOptions>
                 <iterationOptions type="IterationOptions">
-                    <IterationOptions minPrimaryIterations="1" maxPrimaryIterations="10" minSecondaryIterations="1" maxSecondaryIterations="3" includePrimaryEmission="false" primaryIterationPacketsMultiplier="1" secondaryIterationPacketsMultiplier="1"/>
+                    <IterationOptions minPrimaryIterations="1" maxPrimaryIterations="10" minSecondaryIterations="1" maxSecondaryIterations="4" includePrimaryEmission="false" primaryIterationPacketsMultiplier="1" secondaryIterationPacketsMultiplier="1"/>
                 </iterationOptions>
                 <dustEmissionOptions type="DustEmissionOptions">
-                    <DustEmissionOptions dustEmissionType="{dustEmissionType}" includeHeatingByCMB="{includeHeatingByCMB}" maxFractionOfPrimary="0.01" maxFractionOfPrevious="0.03" sourceWeight="1" wavelengthBias="0.5">
+                    <DustEmissionOptions dustEmissionType="{dustEmissionType}" includeHeatingByCMB="{includeHeatingByCMB}" maxFractionOfPrimary="0.01" maxFractionOfPrevious="0.05" sourceWeight="1" wavelengthBias="0.5">
                         <cellLibrary type="SpatialCellLibrary">
                             <AllCellsLibrary/>
                         </cellLibrary>
@@ -323,17 +323,17 @@
                     <ConvergenceInfoProbe probeName="conv" wavelength="0.55 micron" probeAfter="Setup"/>
                     <ImportedMediumDensityProbe probeName="import">
                         <form type="GenericForm">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumDensityProbe>
                     <DensityProbe probeName="density" aggregation="Component" probeAfter="Setup">
                         <form type="Form">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </DensityProbe>
                     <ImportedSourceDensityProbe probeName="imp_source_den" massType="CurrentMass">
                         <form type="GenericForm">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedSourceDensityProbe>
                     <OpticalMaterialPropertiesProbe probeName="optical_props"/>

@@ -44,10 +44,10 @@
                     <SecondaryEmissionOptions storeEmissionRadiationField="true" secondaryPacketsMultiplier="1" spatialBias="0.5" sourceBias="0.5"/>
                 </secondaryEmissionOptions>
                 <iterationOptions type="IterationOptions">
-                    <IterationOptions minPrimaryIterations="1" maxPrimaryIterations="10" minSecondaryIterations="1" maxSecondaryIterations="3" includePrimaryEmission="false" primaryIterationPacketsMultiplier="1" secondaryIterationPacketsMultiplier="1"/>
+                    <IterationOptions minPrimaryIterations="1" maxPrimaryIterations="10" minSecondaryIterations="1" maxSecondaryIterations="4" includePrimaryEmission="false" primaryIterationPacketsMultiplier="1" secondaryIterationPacketsMultiplier="1"/>
                 </iterationOptions>
                 <dustEmissionOptions type="DustEmissionOptions">
-                    <DustEmissionOptions dustEmissionType="{dustEmissionType}" includeHeatingByCMB="{includeHeatingByCMB}" maxFractionOfPrimary="0.01" maxFractionOfPrevious="0.03" sourceWeight="1" wavelengthBias="0.5">
+                    <DustEmissionOptions dustEmissionType="{dustEmissionType}" includeHeatingByCMB="{includeHeatingByCMB}" maxFractionOfPrimary="0.01" maxFractionOfPrevious="0.05" sourceWeight="1" wavelengthBias="0.5">
                         <cellLibrary type="SpatialCellLibrary">
                             <AllCellsLibrary/>
                         </cellLibrary>

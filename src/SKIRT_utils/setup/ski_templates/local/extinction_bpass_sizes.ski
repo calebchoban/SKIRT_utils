@@ -224,12 +224,12 @@
                     <ConvergenceInfoProbe probeName="conv" wavelength="0.55 micron" probeAfter="Setup"/>
                     <ImportedMediumDensityProbe probeName="import">
                         <form type="GenericForm">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumDensityProbe>
                     <DensityProbe probeName="density" aggregation="Component" probeAfter="Setup">
                         <form type="Form">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </DensityProbe>
                     <OpticalMaterialPropertiesProbe probeName="optical_props"/>
