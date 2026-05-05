@@ -21,12 +21,14 @@ def format_ski_file(
     num_wavelengths: int = 200,
     min_wavelength: float = 0.09,
     max_wavelength: float = 2000.0,
+    min_source_wavelength: float|None = None,
+    max_source_wavelength: float|None = None,
     min_rad_field_wavelength: float|None = None,
     max_rad_field_wavelength: float|None = None,
-    num_rad_field_wavelengths: int = 50,
+    num_rad_field_wavelengths: int|None = None,
     min_dust_emission_wavelength: float = 0.2,
     max_dust_emission_wavelength: float = 1000.0,
-    num_dust_emission_wavelengths: int = 100,
+    num_dust_emission_wavelengths: int|None = None,
     half_fov_kpc: float = 18.0,
     inst_half_fov_kpc: float|None = None,
     max_temperature: float = 0.0,
@@ -71,17 +73,15 @@ def format_ski_file(
     num_packets : float, optional
         Number of photon packets for SKIRT simulation.
     num_wavelengths : int, optional
-        Number of wavelengths for SKIRT simulation.
+        Number of wavelengths for SKIRT simulation. Used for source wavelength grid, radiation field grid, and SED instruments by default, but these can be set independently if desired.
     min_wavelength : float, optional
         Minimum wavelength in microns for SKIRT simulation. Used by source wavelength grid, radiation field grid, and SED instruments by default, but these can be set independently if desired.
     max_wavelength : float, optional
         Maximum wavelength in microns for SKIRT simulation. Used by source wavelength grid, radiation field grid, and SED instruments by default, but these can be set independently if desired.
-    min_rad_field_wavelength : float, optional
-        Minimum wavelength in microns for the radiation field grid. Default is set to min_wavelength for consistency with the source wavelength grid, but can be set to a different value if desired.
-    max_rad_field_wavelength : float, optional
-        Maximum wavelength in microns for the radiation field grid. Default is set to max_wavelength for consistency with the source wavelength grid, but can be set to a different value if desired.
-    num_rad_field_wavelengths : int, optional
-        Number of wavelengths for the radiation field grid. Default is set to 50. Note this affects medium memory usage since each cell records the rad field at each wavelength so this cannot be too large.
+    min_source_wavelength : float, optional
+        Minimum wavelength in microns for the source wavelength grid. Default is set to min_wavelength for consistency with the global grid, but can be set to a different value if desired.
+    max_source_wavelength : float, optional
+        Maximum wavelength in microns for the source wavelength grid. Default is set to max_wavelength for consistency with the global grid, but can be set to a different value if desired.
     min_dust_emission_wavelength : float, optional
         Minimum wavelength in microns for the dust emission grid. Default is 0.2 microns.
     max_dust_emission_wavelength : float, optional
@@ -209,18 +209,18 @@ def format_ski_file(
     # Define limits for relevant wavelength ranges used in SKIRT
 
     # 1. Define *rest-frame* wavelength range for sources (stars)
-    max_wavelength_source = max_wavelength  # microns;
-    min_wavelength_source = min_wavelength
+    min_wavelength_source = min_source_wavelength if min_source_wavelength is not None else min_wavelength
+    max_wavelength_source = max_source_wavelength if max_source_wavelength is not None else max_wavelength
 
     # 2. Define wavelength limits for dust emission and radiation field
     #    grids; these are set to the same values reported in Camps & Baes (2020)
     #    used for stochastic grain heating. Includes increased binning across
     #    MIR for PAH emission lines.
-    num_wavelengths_dust_base = num_dust_emission_wavelengths
+    num_wavelengths_dust_base = num_dust_emission_wavelengths if num_dust_emission_wavelengths is not None else num_wavelengths
     min_wavelength_dust_base, max_wavelength_dust_base = min_dust_emission_wavelength, max_dust_emission_wavelength
 
     # Need finer wavelength binning for PAH features in MIR
-    num_wavelengths_dust_sub = 2 * num_dust_emission_wavelengths
+    num_wavelengths_dust_sub = 2 * num_wavelengths_dust_base
 
     min_PAH_wavelength = 3.0 # microns; approximate start of PAH features
     max_PAH_wavelength = 25.0 # microns; approximate end of PAH features
@@ -229,11 +229,11 @@ def format_ski_file(
     min_wavelength_dust_sub, max_wavelength_dust_sub = np.max([3.0, min_dust_emission_wavelength]), np.min([25.0, max_dust_emission_wavelength])
 
     # This is the wavelength grid SKIRT stores radiation field info for each cell. 
-    # Can't be too large since this uses a lot of memory.
-    num_wavelengths_rad = num_rad_field_wavelengths
+    # Can't be too large since this uses a lot of memory (each cell stores the rad field at each wavelength).
+    num_wavelengths_rad = num_rad_field_wavelengths if num_rad_field_wavelengths is not None else num_wavelengths
     min_rad_field_wavelength = min_wavelength if min_rad_field_wavelength is None else min_rad_field_wavelength
     max_rad_field_wavelength = max_wavelength if max_rad_field_wavelength is None else max_rad_field_wavelength
-    min_wavelength_rad, max_wavelength_rad = min_wavelength_source, max_wavelength_source
+    min_wavelength_rad, max_wavelength_rad = min_rad_field_wavelength, max_rad_field_wavelength
 
     # 3. Define wavelength limits for *observer-frame* SED instruments
     min_wavelength_obs, max_wavelength_obs = (
@@ -317,7 +317,6 @@ def format_ski_file(
             f"SKIRT simulation will use {name} {npix} x {npix} pixels ({inst_fov_pc:g} pc x {inst_fov_pc:g} pc) "
             + f"with a physical scale of {extra_kpc_per_pixel[name]:.3f} kpc / pixel."
         )
-
     # Format the SKIRT input file with the appropriate parameters
 
     # This is a workaround to handle missing keys in the dictionary and avoid
@@ -331,6 +330,7 @@ def format_ski_file(
     # Make output directory if it doesn't exist
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
+
 
     with open(output_path, "w") as f:
         num_packets = "{:g}".format(num_packets)

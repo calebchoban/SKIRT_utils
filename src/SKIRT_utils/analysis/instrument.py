@@ -1006,9 +1006,15 @@ class SED:
         return LUV.to(u.L_sun)
 
 
-    def calculate_attenuation(self):
+    def calculate_attenuation(self, only_direct_stellar=False):
         """
         Calculate the attenuation (A_lambda) across all wavelengths by comparing the total flux to the transparent flux.
+
+        Parameters:
+        only_direct_stellar (bool): Whether to consider only the direct stellar flux when calculating attenuation.
+        If True, only the direct stellar flux will be used as the total. If False, the total flux 
+        (direct+scattered stellar + dust emission) will be used. For very low Av systems scattering+emission 
+        can lead to negative attenuation values.
 
         Returns:
         astropy.table.Column: The attenuation A_lambda in magnitudes for each wavelength.
@@ -1018,15 +1024,24 @@ class SED:
             raise ValueError("SED data not loaded. Call sed.read_data() first.")
         
         # Get wavelength, total flux, and transparent flux columns
-        total_flux = self.get_column_by_name('total flux', 
-                                             spectral_density_units='wavelength', 
-                                             convert_to_luminosity=False)  # Keep in flux units
+        # Get total flux (direct+scattered stellar + dust emission) or only direct stellar flux
+        if not only_direct_stellar:
+            total_flux = self.get_column_by_name('total flux', 
+                                                spectral_density_units='wavelength', 
+                                                convert_to_luminosity=False)  # Keep in flux units
+        else:
+            total_flux = self.get_column_by_name('direct primary flux', 
+                                                spectral_density_units='wavelength', 
+                                                convert_to_luminosity=False)  # Keep in flux units
+            
         transparent_flux = self.get_column_by_name('transparent flux', 
                                                   spectral_density_units='wavelength', 
                                                   convert_to_luminosity=False)  # Keep in flux units
         
         # Calculate A_lambda using the formula: A_lambda = 2.5 * log10(transparent_flux / total_flux)
-        A_lambda = 2.5 * np.log10(transparent_flux / total_flux)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            ratio = np.where(total_flux == 0, np.nan, transparent_flux / total_flux)
+            A_lambda = 2.5 * np.log10(ratio)
         
         return A_lambda
 
