@@ -152,7 +152,20 @@ class IFU(object):
     This class is used to extract images from IFU data cubes.
     '''
 
-    def __init__(self, dirc, inst_file, verbose=True):
+    def __init__(self, 
+                 dirc: str, 
+                 inst_file: str, 
+                 verbose: bool = True):
+        '''
+        Parameters
+        ----------
+        dirc : string
+            Directory where the FITS file is located.
+        inst_file : string
+            Name of the FITS file containing the IFU data cube.
+        verbose : bool, optional
+            Whether to print information about the FITS file and the filters it contains. Default is True.
+        '''
         self.dirc = dirc
         self.inst_file = inst_file
         self.verbose = verbose
@@ -207,7 +220,13 @@ class IFU(object):
         hdul.close()
 
 
-    def get_filter_image(self, filter, psf=None, brightness_units=None, downsample_resolution=None, downsample_factor=1, sum_downsample=False):
+    def get_filter_image(self, 
+                         filter: str, 
+                         psf: PSF|None = None, 
+                         brightness_units: str|None=None, 
+                         downsample_resolution: float|None=None, 
+                         downsample_factor: int=1, 
+                         sum_downsample: bool=False,):
         '''
         This function extracts the image data for the specified filter.
 
@@ -220,20 +239,26 @@ class IFU(object):
         brightness_units : string, optional
             Surface brightness units wanted (wavelength, frequency, neutral). Default is None which uses units in FITS file.
         downsample_resolution : double, optional
-            Resolution in arsec to downsample the image to. Default is None.
+            Resolution in arsec to downsample the image to. Default is None. Overrides downsample_factor if provided.
         downsample_factor : int, optional
             Integer factor you want to downsample the image by. Default is 1.
         sum_downsample : bool, optional
-            Whether to sum the pixel values when downsampling instead of taking the average. Default is False since images are typically in surface brightnesses units which cannot be summed since they are per unit area. This is mainly used when downsampling images with reliability statistics.
+            Whether to sum the pixel values when downsampling instead of taking the average. Default is False since images are typically in surface brightnesses units which should be averaged since they are per unit area. This is mainly used when downsampling images with reliability statistics.
         Returns
         -------
         image : ndarray (N,N)
             NxN pixel image for the specified filter.
         '''
 
+        has_filter = False
+        for filt in self.filters:
+            if filter in filt:
+                filter = filt
+                has_filter = True
+                break
 
-        if filter not in self.filters:
-            print("Filter %s not found in FITS file. Returning None."%filter)
+        if not has_filter:
+            print("Filter %s not found in FITS file."%filter)
             return None
 
         idx = np.where(self.filters == filter)
@@ -285,9 +310,17 @@ class IFU(object):
 
         # Convolve with the telescope PSF. This is the effects of the telescope mirrors, 
         # reflectors, etc. before light hits the detectors. You always want to apply the PSF
-        # first and then downsample to the true resolution of your instrument.
+        # first and then downsample.
         if psf is not None:
-            image = convolve_fft(image, psf)
+            if psf.filter not in filter:
+                raise ValueError("PSF filter %s does not match image filter %s."%(psf.filter, filter))
+            if np.abs(psf.pixel_scale - self.pixel_res_angle)/self.pixel_res_angle > 0.25:
+                print("\t WARNING: PSF pixel scale %s does not match image pixel \n \t scale %s " \
+                "within 25%%. Convolved image may be inaccurate."%(psf.pixel_scale, self.pixel_res_angle))
+            if self.verbose:
+                print("Convolving image with PSF for filter %s."%psf.filter)
+                print("PSF has pixel scale %s and image has pixel scale %s."%(psf.pixel_scale, self.pixel_res_angle))
+            image = convolve_fft(image, psf.psf_data)
         
         # Down sample instrument resolution to a lower resolution
         if downsample_resolution is not None or downsample_factor > 1:
@@ -305,12 +338,6 @@ class IFU(object):
             else:
                 reduce_func = np.mean # reducing resolution means new larger pixels have the average brigtness of the smaller pixels
             image = block_reduce(image, downsample_factor, func = reduce_func) 
-        else:
-            if psf is not None:
-                print("WARNING: You convolved your image with a PSF but didnt downsample.\n If your image is already at " \
-                "the resolution of your telescope this will make your image have lower resolution than a real image!\n " \
-                "For a realistic image you should convolve the PSF with a higher resolution image and then downsample. ")
-
 
         return image
     
@@ -373,7 +400,9 @@ class IFU(object):
 
 class Telescope_PSF(object):
     '''
-    This class is used to create a telescope PSF to be convlved with given SKIRT IFU. It is not fully implemented yet.
+    This class is used to create a telescope PSF to be convolved with a given SKIRT image. The PSF can be a simple Gaussian with 
+    user specified resoltuion for a generic telescope or a realistic PSF for JWST NIRCam and MIRI filters at each filters resolution 
+    using stpsf. Since the SKIRT image is not guaranteed to be at the same resolution as the telescope, the get_psf function allows you to specify the resolution of the telescope and the relative resolution of the SKIRT instrument and the telescope to determine the FWHM of the Gaussian PSF. For JWST NIRCam and MIRI filters, stpsf provides PSFs at different resolutions so you can specify whether to use the instrument resolution or the telescope resolution to determine which PSF to use.
     '''
 
     def __init__(self,
@@ -384,33 +413,48 @@ class Telescope_PSF(object):
         self.IFU = IFU
         self.filter = filter
         self.verbose = verbose
+        self.psf = None
 
         self.telescope = 'GENERIC'
-        if 'NIRCAM' in filter:
-            self.telescope = 'NIRCAM'
-        elif 'MIRI' in filter:
-            self.telescope = 'MIRI'
-        else:
-            if self.verbose:
-                print("WARNING: No telescope found for filter %s. Using GENERIC telescope."%filter)
+        if filter != 'GENERIC':
+            if 'NIRCAM' in filter:
+                self.telescope = 'NIRCAM'
+            elif 'MIRI' in filter:
+                self.telescope = 'MIRI'
+            else:
+                if self.verbose and filter:
+                    print("WARNING: No telescope found for filter %s. Using GENERIC telescope."%filter)
 
         
     def get_psf(self,   
-                telescope_res: float = 0.1, # in arcsec
-                oversample_factor: int = 4, # oversample factor for the PSF
-                use_instrument_res: bool = True, # Use the instrument resolution to determine the PSF. If False will assume instrument and telescope have the same resolution
+                telescope_res: float = 0.1,
+                override_instrument_res: float = 0,
                 ):
+        '''
+        This function creates a PSF for the specified telescope and filter. It can create a Gaussian PSF for a generic telescope or use stpsf to create a more realistic PSF for JWST NIRCam and MIRI filters.
+
+        Parameters
+        ----------
+        telescope_res : float, optional
+            Resolution of the telescope in arcsec you want to calculate the PSF for only used for a generic telescope. Default is 0.1 arcsec.
+        override_instrument_res : float, optional
+            If provided, this will override the SKIRT instrument resolution. Default is 0.
         
-        telescope_res = telescope_res * u.arcsec
+        Returns
+        -------
+        psf : ndarray (M,M)
+            PSF array for the specified telescope and filter. For a generic telescope this will be a Gaussian. For JWST NIRCam and MIRI filters this a PSF provided by stpsf.
+        '''
+        
+        telescope_res = telescope_res
 
         if self.telescope == 'GENERIC':
             self.get_gaussian_psf(telescope_res=telescope_res,
-                                  oversample_factor=oversample_factor,
-                                  use_instrument_res=use_instrument_res)
+                                  override_instrument_res=override_instrument_res)
         elif self.telescope == 'NIRCAM':
-            self.get_NIRCam_psf(oversample_factor=oversample_factor)
+            self.get_NIRCam_psf(override_instrument_res=override_instrument_res)
         elif self.telescope == 'MIRI':
-            self.get_MIRI_psf(oversample_factor=oversample_factor)
+            self.get_MIRI_psf(override_instrument_res=override_instrument_res)
         else:
             print("Something went wrong. Telescope %s not supported."%self.telescope)
             return None
@@ -420,124 +464,193 @@ class Telescope_PSF(object):
 
     def get_gaussian_psf(self,
                         telescope_res: float = 0.1,
-                        oversample_factor: int = 4,
-                        use_instrument_res: bool = True,):
+                        override_instrument_res: float = 0,):
+        '''
+        Creates a Gaussian PSF for a generic telescope. The FWHM of the Gaussian is determined by the relative resolution of the SKIRT instrument and the telescope. If use_instrument_res is False then the instrument and telescope are assumed to have the same resolution and the FWHM of the Gaussian is 1 pixel.
+
+        Parameters
+        ----------
+        telescope_res : float, optional
+            Resolution of the telescope in arcsec you want to calculate the PSF for only used for a generic telescope. Default is 0.1 arcsec.
+        override_instrument_res : float, optional
+            If provided, this will override the instrument resolution. Default is 0.
+        '''
         
         # Telescope resolution in arcsecond
-        telescope_resolution = telescope_res
+        telescope_resolution = telescope_res * u.arcsec
         # SKIRT instrument can have any resolution. 
         # The relative resolution of the instrument and the actual telescope will determine the Gaussian sigma
-        if self.IFU is not None and use_instrument_res:
+        if self.IFU is not None and override_instrument_res == 0:
             instrument_res = self.IFU.pixel_res_angle.to('arcsec') # in arcsec
-        else: instrument_res=telescope_res # If no SKIRT instrument given assume same resolution as telescope
+        else: instrument_res= override_instrument_res * u.arcsec # Override resolution of telescope
         # calculate the sigma in pixels.
         sigma = telescope_resolution/instrument_res
 
-        psf = Gaussian2DKernel(sigma, factor = oversample_factor)
-        self.psf = psf
+        # Oversampling factor of the PSF which is then downsampled to the telescope resolution. Default of 4 usually assumed most PSFs.
+        oversample_factor = 4 
+        gauss_psf = Gaussian2DKernel(sigma, factor = oversample_factor, mode='oversample')
+        self.psf = PSF('GENERIC', gauss_psf.array, pixel_scale=instrument_res)
 
         if self.verbose:
-            print(f"PSF model for filter GENERIC has pixel scale {telescope_res:.4g} arcsec / pixel.\n")
+            print(f"PSF model for filter GENERIC has pixel scale {telescope_res:.4g} arcsec / pixel and sigma {sigma:.4g} pixels.\n")
 
 
     def get_NIRCam_psf(self,
-                       oversample_factor: int = 4,
-                       use_instrument_res: bool = True,):
+                       override_instrument_res: float = 0,):
+        '''
+        Creates a NIRCam PSF for the specified filter.
+        Parameters
+        ----------
+        override_instrument_res : float, optional
+            If provided, this will override the instrument resolution. Default is 0.
+
+        '''
 
         # Only need filter number (i.e. F070W) and not the full name (i.e. JWST_NIRCAM_F070W)
         filter_name = self.filter.split('_')[-1]
-        # Name of extension in the FITS file
-        extension_name= "DET_SAMP" # Other choices are ["DET_SAMP", "OVERSAMP", "DET_DIST", "OVERDIST"]
+        # Name of extension in the FITS file we want to use for the PSF.
+        # DET_SAMP is the PSF sampled at the detector pixel scale (i.e. the true PSF of the telescope). 
+        # OVERSAMP is the PSF oversampled by the oversample_factor (i.e. the PSF that is convolved with 
+        # the image before downsampling to the telescope resolution).
+        # DET_DIST and OVERDIST are the same but including additional "real world" effects such as 
+        # geometric distortion of the instruments, and detector charge transfer and interpixel capacitance.
+        extension_name= "DET_DIST" # select the most "realistic" PSF
         # Calculate npixels for the telescope given the npixels and resolution of the instrument given
         # Else we assume the instrument and telescope have the same resolution
-        if self.IFU is not None and use_instrument_res:
-            # Have to run this once to get the pixel scale for the instrument
-            nircam = stpsf.NIRCam()
-            nircam.filter = filter_name
-            psf_hdulist = nircam.calc_psf()
-            telescope_res = psf_hdulist[extension_name].header["PIXELSCL"] * u.arcsec
-            instrument_npixels = self.IFU.num_pixels[0]
+        if self.IFU is not None and override_instrument_res == 0:
             instrument_res = self.IFU.pixel_res_angle.to('arcsec')
-            telescope_npixels = int(instrument_npixels * instrument_res / telescope_res)
-            if self.verbose:
-                print(f"JWST NIRCam filter {filter_name} has resolution of {telescope_res} arcsec.\n")
-                print(f"SKIRT instrument has resolution of {instrument_res} arcsec.\n")
-        else:
-            # If no SKIRT instrument given assume same resolution as telescope
-            telescope_npixels = instrument_npixels
+        else: instrument_res=override_instrument_res * u.arcsec # Override resolution of telescope
+        # Have to run this once to get the pixel scale for the instrument
+        nircam = stpsf.NIRCam()
+        nircam.filter = filter_name
+        psf_hdulist = nircam.calc_psf()
+        telescope_res = psf_hdulist[extension_name].header["PIXELSCL"] * u.arcsec
+        downsample_factor = int(np.round(telescope_res/instrument_res))
+        if self.verbose:
+            print(f"JWST NIRCam filter {filter_name} has resolution of {telescope_res} / pixel.")
+            print(f"SKIRT instrument has resolution of {instrument_res} / pixel.")
+            if downsample_factor >= 2:
+                print(f"Filter PSF will be oversampled by {downsample_factor} to account for the higher resolution of the instrument.")
+        if telescope_res/instrument_res < 0.75:
+            print(f"WARNING: Instrument has lower resolution than telescope filter {filter_name}.")
+            print("Convolving with this PSF will underpredict the effects of the PSF. Consider using a finer resolution instrument.")
 
         # Create NIRCam PSF model
-
-        if self.verbose:
-            print(f"Creating PSF model for JWST NIRCam filter {filter_name} with {telescope_npixels} pixels and {oversample_factor} oversampling.\n")
+        oversample_factor = 4 * np.max([1,downsample_factor]) # This sets the oversampling factor of the PSF which is then downsampled to the telescope detector resolution. Default of 4 is ok.
         nircam = stpsf.NIRCam()
         nircam.filter = filter_name
         psf_hdulist = nircam.calc_psf(
-            fov_pixels=telescope_npixels,
             oversample=oversample_factor,
             outfile=None,
         )
 
-        psf = psf_hdulist[extension_name].data
-        pixel_scale = psf_hdulist[extension_name].header["PIXELSCL"]
+        if downsample_factor < 2:
+            extension_name= "DET_DIST" # If the instrument resolution is close to the telescope resolution then use the PSF sampled at the detector pixel scale.
+            psf = psf_hdulist[extension_name].data
+            pixel_scale = psf_hdulist[extension_name].header["PIXELSCL"] * u.arcsec
+        else:
+            extension_name= "OVERDIST" # If the instrument resolution is finer than the telescope resolution then use the oversampled PSF and downsample it to the instrument resolution.
+            psf = psf_hdulist[extension_name].data
+            # Downsample oversampled PSF
+            psf = block_reduce(psf, block_size=oversample_factor/downsample_factor, func=np.mean)
+            pixel_scale = psf_hdulist[extension_name].header["PIXELSCL"] * oversample_factor/downsample_factor * u.arcsec
 
         psf /= np.sum(psf)  # normalize PSF
 
         if self.verbose:
-            print(f"PSF model for filter {filter_name} has pixel scale {pixel_scale:.4g} arcsec / pixel.\n")
+            print(f"PSF model for filter {filter_name} has pixel scale {pixel_scale:.4g} / pixel.\n")
         
-        self.psf = psf
+        self.psf = PSF(filter_name, psf, pixel_scale)
 
 
     def get_MIRI_psf(self,
-                    oversample_factor: int = 4,
-                    use_instrument_res: bool = True,):
+                    override_instrument_res: bool = True,):
+        '''
+        Creates a MIRI PSF for the specified filter.
+        Parameters
+        ----------
+        override_instrument_res : float, optional
+            If provided, this will override the instrument resolution. Default is 0.
+
+        '''
 
         # Only need filter number (i.e. F770W) and not the full name (i.e. JWST_MIRI_F770W)
         filter_name = self.filter.split('_')[-1]
-
-        # Name of extension in the FITS file
-        extension_name= "DET_SAMP" # Other choices are ["DET_SAMP", "OVERSAMP", "DET_DIST", "OVERDIST"]
+        # Name of extension in the FITS file we want to use for the PSF.
+        # DET_SAMP is the PSF sampled at the detector pixel scale (i.e. the true PSF of the telescope). 
+        # OVERSAMP is the PSF oversampled by the oversample_factor (i.e. the PSF that is convolved with 
+        # the image before downsampling to the telescope resolution).
+        # DET_DIST and OVERDIST are the same but including additional "real world" effects such as 
+        # geometric distortion of the instruments, and detector charge transfer and interpixel capacitance.
+        extension_name= "DET_DIST" # select the most "realistic" PSF
         # Calculate npixels for the telescope given the npixels and resolution of the instrument given
         # Else we assume the instrument and telescope have the same resolution
-        if self.IFU is not None and use_instrument_res:
-            # Have to run this once to get the pixel scale for the instrument
-            miri = stpsf.MIRI()
-            miri.filter = filter_name
-            psf_hdulist = miri.calc_psf()
-            telescope_res = psf_hdulist[extension_name].header["PIXELSCL"] * u.arcsec
-            instrument_npixels = self.IFU.num_pixels[0]
+        if self.IFU is not None and override_instrument_res == 0:
             instrument_res = self.IFU.pixel_res_angle.to('arcsec')
-            telescope_npixels = int(instrument_npixels * instrument_res / telescope_res)
-            if self.verbose:
-                print(f"JWST MIRI filter {filter_name} has resolution of {telescope_res} arcsec.\n")
-                print(f"SKIRT IFU has resolution of {instrument_res} arcsec.\n")
-        else:
-            # If no SKIRT IFU given assume same resolution as telescope
-            telescope_npixels = instrument_npixels
-
-        # Create NIRCam PSF model
-
+        else: instrument_res=override_instrument_res * u.arcsec # Override resolution of telescope
+        # Have to run this once to get the pixel scale for the instrument
+        miri = stpsf.MIRI()
+        miri.filter = filter_name
+        psf_hdulist = miri.calc_psf()
+        telescope_res = psf_hdulist[extension_name].header["PIXELSCL"] * u.arcsec
+        downsample_factor = int(np.round(telescope_res/instrument_res))
         if self.verbose:
-            print(f"Creating PSF model for JWST MIRI filter {filter_name} with {telescope_npixels} pixels and {oversample_factor} oversampling.\n")
+            print(f"JWST MIRI filter {filter_name} has resolution of {telescope_res} / pixel.")
+            print(f"SKIRT instrument has resolution of {instrument_res} / pixel.")
+            if downsample_factor >= 2:
+                print(f"Filter PSF will be oversampled by {downsample_factor} to account for the higher resolution of the instrument.")
+        if telescope_res/instrument_res < 0.75:
+            print(f"WARNING: Instrument has lower resolution than telescope filter {filter_name}.")
+            print("Convolving with this PSF will underpredict the effects of the PSF. Consider using a finer resolution instrument.")
+
+        # Create MIRI PSF model
+        oversample_factor = 4 * np.max([1,downsample_factor]) # This sets the oversampling factor of the PSF which is then downsampled to the telescope detector resolution. Default of 4 is ok.
         miri = stpsf.MIRI()
         miri.filter = filter_name
         psf_hdulist = miri.calc_psf(
-            fov_pixels=telescope_npixels,
             oversample=oversample_factor,
             outfile=None,
         )
 
-        psf = psf_hdulist[extension_name].data
-        pixel_scale = psf_hdulist[extension_name].header["PIXELSCL"]
+        if downsample_factor < 2:
+            extension_name= "DET_DIST" # If the instrument resolution is close to the telescope resolution then use the PSF sampled at the detector pixel scale.
+            psf = psf_hdulist[extension_name].data
+            pixel_scale = psf_hdulist[extension_name].header["PIXELSCL"] * u.arcsec
+        else:
+            extension_name= "OVERDIST" # If the instrument resolution is finer than the telescope resolution then use the oversampled PSF and downsample it to the instrument resolution.
+            psf = psf_hdulist[extension_name].data
+            # Downsample oversampled PSF
+            psf = block_reduce(psf, block_size=oversample_factor/downsample_factor, func=np.mean)
+            pixel_scale = psf_hdulist[extension_name].header["PIXELSCL"] * oversample_factor/downsample_factor * u.arcsec
 
         psf /= np.sum(psf)  # normalize PSF
 
         if self.verbose:
-            print(f"PSF model for MIRI filter {filter_name} has pixel scale {pixel_scale:.4g} arcsec / pixel.\n")
+            print(f"PSF model for filter {filter_name} has pixel scale {pixel_scale:.4g} / pixel.\n")
         
-        self.psf = psf
+        self.psf = PSF(filter_name, psf, pixel_scale)
 
+
+class PSF():
+    '''
+    PSF data structure to store the PSF array and its properties such as pixel scale, etc. This is used to convolve with the SKIRT images to create realistic images at the resolution of a given telescope.
+    '''
+
+    def __init__(self, filter: str, psf_data: np.ndarray, pixel_scale: u.Quantity):
+        self.filter = filter
+        self.psf_data = psf_data
+        self.pixel_scale = pixel_scale
+
+    def __str__(self):
+        shape = self.psf_data.shape
+        return (
+            f"PSF(filter={self.filter}, "
+            f"shape={shape}, "
+            f"pixel_scale={self.pixel_scale})"
+        )
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class SED:
