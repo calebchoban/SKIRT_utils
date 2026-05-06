@@ -41,7 +41,7 @@
                     </RadiationFieldOptions>
                 </radiationFieldOptions>
                 <secondaryEmissionOptions type="SecondaryEmissionOptions">
-                    <SecondaryEmissionOptions storeEmissionRadiationField="true" secondaryPacketsMultiplier="1" spatialBias="0.5" sourceBias="0.5"/>
+                    <SecondaryEmissionOptions storeEmissionRadiationField="true" secondaryPacketsMultiplier="1" spatialBias="{secondaryEmissionSpatialBias}" sourceBias="0.5"/>
                 </secondaryEmissionOptions>
                 <iterationOptions type="IterationOptions">
                     <IterationOptions minPrimaryIterations="1" maxPrimaryIterations="10" minSecondaryIterations="1" maxSecondaryIterations="4" includePrimaryEmission="false" primaryIterationPacketsMultiplier="1" secondaryIterationPacketsMultiplier="1"/>
@@ -60,12 +60,16 @@
                     </DustEmissionOptions>
                 </dustEmissionOptions>
                 <media type="Medium">
-                    <ParticleMedium filename="dust.dat" massType="Mass" massFraction="{massFraction}" importMetallicity="{importMetallicity}" importTemperature="{importTemperature}" maxTemperature="{maxTemperature} K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
+                    <ParticleMedium filename="dust.dat" massType="Mass" massFraction="1" importMetallicity="false" importTemperature="false" maxTemperature="0 K" importVelocity="false" importMagneticField="false" importVariableMixParams="false" useColumns="">
                         <smoothingKernel type="SmoothingKernel">
                             <CubicSplineSmoothingKernel/>
                         </smoothingKernel>
                         <materialMix type="MaterialMix">
-                            <WeingartnerDraineDustMix environment="MilkyWay" numSilicateSizes="5" numGraphiteSizes="5" numPAHSizes="10"/>
+                            <FragmentDustMixDecorator fragmentSizeBins="false" hasDynamicDensities="false" initialDensityFraction="0">
+                                <dustMix type="MultiGrainDustMix">
+                                    <WeingartnerDraineDustMix environment="MilkyWay" numSilicateSizes="10" numGraphiteSizes="10" numPAHSizes="10"/>
+                                </dustMix>
+                            </FragmentDustMixDecorator>
                         </materialMix>
                     </ParticleMedium>
                 </media>
@@ -141,16 +145,8 @@
                             <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </DensityProbe>
-                    <ImportedMediumMetallicityProbe probeName="imp_medium_met">
-                        <form type="GenericForm">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
-                        </form>
-                    </ImportedMediumMetallicityProbe>
-                    <ImportedMediumTemperatureProbe probeName="imp_medium_temp">
-                        <form type="GenericForm">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
-                        </form>
-                    </ImportedMediumTemperatureProbe>
+                    <OpticalMaterialPropertiesProbe probeName="optical_props"/>
+                    <DustGrainPopulationsProbe probeName="dust_grain_pop"/>
                 </probes>
             </ProbeSystem>
         </probeSystem>
