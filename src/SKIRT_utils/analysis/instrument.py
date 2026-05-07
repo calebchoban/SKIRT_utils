@@ -147,6 +147,29 @@ filter_names = np.array(list(filter_pivot_wavelengths.keys()))
 filter_wavelengths = u.Quantity(list(filter_pivot_wavelengths.values()))
 
 
+class PSF():
+    '''
+    PSF data structure to store the PSF array and its properties such as pixel scale, etc. This is used to convolve with the SKIRT images to create realistic images at the resolution of a given telescope.
+    '''
+
+    def __init__(self, filter: str, psf_data: np.ndarray, pixel_scale: u.Quantity):
+        self.filter = filter
+        self.psf_data = psf_data
+        self.pixel_scale = pixel_scale
+
+    def __str__(self):
+        shape = self.psf_data.shape
+        return (
+            f"PSF(filter={self.filter}, "
+            f"shape={shape}, "
+            f"pixel_scale={self.pixel_scale})"
+        )
+
+    def __repr__(self):
+        return self.__str__()
+
+
+
 class IFU(object):
     '''
     This class is used to extract images from IFU data cubes.
@@ -629,28 +652,6 @@ class Telescope_PSF(object):
             print(f"PSF model for filter {filter_name} has pixel scale {pixel_scale:.4g} / pixel.\n")
         
         self.psf = PSF(filter_name, psf, pixel_scale)
-
-
-class PSF():
-    '''
-    PSF data structure to store the PSF array and its properties such as pixel scale, etc. This is used to convolve with the SKIRT images to create realistic images at the resolution of a given telescope.
-    '''
-
-    def __init__(self, filter: str, psf_data: np.ndarray, pixel_scale: u.Quantity):
-        self.filter = filter
-        self.psf_data = psf_data
-        self.pixel_scale = pixel_scale
-
-    def __str__(self):
-        shape = self.psf_data.shape
-        return (
-            f"PSF(filter={self.filter}, "
-            f"shape={shape}, "
-            f"pixel_scale={self.pixel_scale})"
-        )
-
-    def __repr__(self):
-        return self.__str__()
 
 
 class SED:
