@@ -41,7 +41,7 @@
                     </RadiationFieldOptions>
                 </radiationFieldOptions>
                 <secondaryEmissionOptions type="SecondaryEmissionOptions">
-                    <SecondaryEmissionOptions storeEmissionRadiationField="true" secondaryPacketsMultiplier="1" spatialBias="{secondaryEmissionSpatialBias}" sourceBias="0.5"/>
+                    <SecondaryEmissionOptions storeEmissionRadiationField="true" secondaryPacketsMultiplier="1" spatialBias="0.5" sourceBias="0.5"/>
                 </secondaryEmissionOptions>
                 <iterationOptions type="IterationOptions">
                     <IterationOptions minPrimaryIterations="1" maxPrimaryIterations="10" minSecondaryIterations="1" maxSecondaryIterations="4" includePrimaryEmission="false" primaryIterationPacketsMultiplier="1" secondaryIterationPacketsMultiplier="1"/>
@@ -79,7 +79,7 @@
                 <grid type="SpatialGrid">
                     <PolicyTreeSpatialGrid minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" treeType="OctTree">
                         <policy type="TreePolicy">
-                            <DensityTreePolicy minLevel="{minTreeLevel}" maxLevel="{maxTreeLevel}" maxDustFraction="{maxDustFraction}" maxDustOpticalDepth="{maxDustOpticalDepth}" wavelength="0.55 micron" maxDustDensityDispersion="0" maxElectronFraction="1e-6" maxGasFraction="1e-6"/>
+                            <DensityTreePolicy minLevel="{minTreeLevel}" maxLevel="{maxTreeLevel}" maxDustFraction="{maxDustFraction}" maxDustOpticalDepth="0" wavelength="0.55 micron" maxDustDensityDispersion="0" maxElectronFraction="1e-6" maxGasFraction="1e-6"/>
                         </policy>
                     </PolicyTreeSpatialGrid>
                 </grid>
@@ -96,7 +96,7 @@
                             <LogWavelengthGrid minWavelength="{minWavelengthRest} micron" maxWavelength="{maxWavelengthRest} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
-                    <FrameInstrument instrumentName="JWST_broadband_xy" distance="{distance} Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                    <FrameInstrument instrumentName="JWST_broadband_xy" distance="{distance} Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultRestNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultRestNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
                             <ConfigurableBandWavelengthGrid>
                                 <bands type="Band">
@@ -111,7 +111,7 @@
                             </ConfigurableBandWavelengthGrid>
                         </wavelengthGrid>
                     </FrameInstrument>
-                    <FrameInstrument instrumentName="vis_broadband_xy" distance="{distance} Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
+                    <FrameInstrument instrumentName="vis_broadband_xy" distance="{distance} Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultRestNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultRestNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="true">
                         <wavelengthGrid type="WavelengthGrid">
                             <ConfigurableBandWavelengthGrid>
                                 <bands type="Band">
@@ -137,12 +137,12 @@
                     <ConvergenceInfoProbe probeName="conv" wavelength="0.55 micron" probeAfter="Setup"/>
                     <ImportedMediumDensityProbe probeName="import">
                         <form type="GenericForm">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumDensityProbe>
                     <DensityProbe probeName="density" aggregation="Component" probeAfter="Setup">
                         <form type="Form">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </DensityProbe>
                     <OpticalMaterialPropertiesProbe probeName="optical_props"/>

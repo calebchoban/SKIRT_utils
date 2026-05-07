@@ -56,7 +56,7 @@
                 <grid type="SpatialGrid">
                     <PolicyTreeSpatialGrid minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" treeType="OctTree">
                         <policy type="TreePolicy">
-                            <DensityTreePolicy minLevel="{minTreeLevel}" maxLevel="{maxTreeLevel}" maxDustFraction="{maxDustFraction}" maxDustOpticalDepth="{maxDustOpticalDepth}" wavelength="0.55 micron" maxDustDensityDispersion="0" maxElectronFraction="1e-6" maxGasFraction="1e-6"/>
+                            <DensityTreePolicy minLevel="{minTreeLevel}" maxLevel="{maxTreeLevel}" maxDustFraction="{maxDustFraction}" maxDustOpticalDepth="0" wavelength="0.55 micron" maxDustDensityDispersion="0" maxElectronFraction="1e-6" maxGasFraction="1e-6"/>
                         </policy>
                     </PolicyTreeSpatialGrid>
                 </grid>
@@ -88,7 +88,7 @@
                             <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
-                    <FullInstrument instrumentName="broadband_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                    <FullInstrument instrumentName="broadband_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
                         <wavelengthGrid type="WavelengthGrid">
                             <ConfigurableBandWavelengthGrid>
                                 <bands type="Band">
@@ -135,7 +135,7 @@
                             </ConfigurableBandWavelengthGrid>
                         </wavelengthGrid>
                     </FullInstrument>
-                    <FullInstrument instrumentName="broadband_yz" distance="0 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                    <FullInstrument instrumentName="broadband_yz" distance="0 Mpc" inclination="90 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
                         <wavelengthGrid type="WavelengthGrid">
                             <ConfigurableBandWavelengthGrid>
                                 <bands type="Band">
@@ -191,43 +191,43 @@
                     <ConvergenceInfoProbe probeName="conv" wavelength="0.55 micron" probeAfter="Setup"/>
                     <DensityProbe probeName="density" aggregation="Type" probeAfter="Setup">
                         <form type="Form">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </DensityProbe>
                     <TemperatureProbe probeName="temperature" aggregation="Type" probeAfter="Run">
                         <form type="Form">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </TemperatureProbe>
                     <InstrumentWavelengthGridProbe probeName="instr_waves"/>
                     <ImportedSourceDensityProbe probeName="imp_source_den" massType="CurrentMass">
                         <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedSourceDensityProbe>
                     <ImportedSourceMetallicityProbe probeName="imp_source_met" weight="CurrentMass" wavelength="0.55 micron">
                         <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedSourceMetallicityProbe>
                     <ImportedSourceAgeProbe probeName="imp_source_age" weight="CurrentMass" wavelength="0.55 micron">
                         <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedSourceAgeProbe>
                     <ImportedMediumDensityProbe probeName="imp_medium_den">
                         <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumDensityProbe>
                     <ImportedMediumMetallicityProbe probeName="imp_medium_met">
                         <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumMetallicityProbe>
                     <ImportedMediumTemperatureProbe probeName="imp_medium_temp">
                         <form type="GenericForm">
-                            <PlanarCutsForm minX="{minX} pc" maxX="{maxX} pc" minY="{minY} pc" maxY="{maxY} pc" minZ="{minZ} pc" maxZ="{maxZ} pc" positionX="0 pc" positionY="0 pc" positionZ="0 pc" numPixelsX="{DefaultNumPixelsX}" numPixelsY="{DefaultNumPixelsY}" numPixelsZ="{DefaultNumPixelsZ}"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumTemperatureProbe>
                 </probes>

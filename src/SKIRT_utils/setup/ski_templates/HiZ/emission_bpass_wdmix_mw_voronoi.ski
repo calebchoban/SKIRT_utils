@@ -110,7 +110,7 @@
                             <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
                     </SEDInstrument>
-                    <FrameInstrument instrumentName="highres_datacube_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
+                    <FrameInstrument instrumentName="highres_datacube_xy" distance="0 Mpc" inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" recordComponents="true" numScatteringLevels="0" recordPolarization="false" recordStatistics="false">
                         <wavelengthGrid type="WavelengthGrid">
                             <LogWavelengthGrid minWavelength="{minWavelengthObs} micron" maxWavelength="{maxWavelengthObs} micron" numWavelengths="{numWavelengths}"/>
                         </wavelengthGrid>
@@ -191,17 +191,17 @@
                     <ConvergenceInfoProbe probeName="conv" wavelength="0.55 micron" probeAfter="Setup"/>
                     <ImportedMediumDensityProbe probeName="import">
                         <form type="GenericForm">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumDensityProbe>
                     <DensityProbe probeName="density" aggregation="Component" probeAfter="Setup">
                         <form type="Form">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </DensityProbe>
                     <ImportedSourceDensityProbe probeName="imp_source_den" massType="CurrentMass">
                         <form type="GenericForm">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedSourceDensityProbe>
                     <SpatialCellPropertiesProbe probeName="grid" wavelength="0.55 micron" probeAfter="Setup"/>
@@ -217,12 +217,12 @@
                     </TemperatureProbe>
                     <ImportedMediumMetallicityProbe probeName="imp_medium_met">
                         <form type="GenericForm">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumMetallicityProbe>
                     <ImportedMediumTemperatureProbe probeName="imp_medium_temp">
                         <form type="GenericForm">
-                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultNumPixelsY}" centerY="0 pc" numSampling="1"/>
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumTemperatureProbe>
                 </probes>
