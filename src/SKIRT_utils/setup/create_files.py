@@ -5,9 +5,16 @@ from string import Formatter
 from astropy.cosmology import LambdaCDM
 import astropy.units as u
 
+
+# This is a workaround to handle missing keys in the dictionary and avoid
+# KeyError exceptions. It returns the key wrapped in curly braces if the key
+# is missing.
+class SafeDict(dict):
+    def __missing__(self, key):
+        return "{" + key + "}"
+
 def format_ski_file(
     snapnum: int,
-    simulation_object: str='',
     default_pixel_ang_scale: float|None = None,
     default_pixel_phy_scale: float|None = None,
     skirt_sim_mode: str='dust_emission',
@@ -15,6 +22,7 @@ def format_ski_file(
     medium_grid: str='octtree',
     output_path: str = '.',
     cosmological: bool = True,
+    cosmo_params: str = 'PLANCK',
     distance: float = 10.0,
     FIRE_ver: int = 0,
     num_packets: float = 1e7,
@@ -26,15 +34,12 @@ def format_ski_file(
     min_rad_field_wavelength: float|None = None,
     max_rad_field_wavelength: float|None = None,
     num_rad_field_wavelengths: int|None = None,
-    min_dust_emission_wavelength: float = 0.2,
-    max_dust_emission_wavelength: float = 1000.0,
     num_dust_emission_wavelengths: int|None = None,
     half_fov_kpc: float = 18.0,
     inst_half_fov_kpc: float|None = None,
     max_temperature: float = 0.0,
     mass_fraction: float = 1.0,
     max_dust_frac: float = 1e-7,
-    max_optical_depth: float = 0,
     min_tree_level: int = 3,
     max_tree_level: int = 20,
     set_template_file: str = '',
@@ -49,9 +54,7 @@ def format_ski_file(
     Parameters
     ----------
     snapnum : int
-        Snapshot number to process.
-    simulation_object : str, optional
-        Name of the simulation object (e.g., "m12i_res7100") used to determine cosmological parameters.
+        Snapshot number to process. Used for determining redshift and scale factors for cosmological simulations.
     default_pixel_ang_scale : float, optional
         Pixel scale in arcseconds per pixel for the default instrument images.Must use either default_pixel_ang_scale or default_pixel_phy_scale, not both.
     default_pixel_phy_scale : float, optional
@@ -65,9 +68,11 @@ def format_ski_file(
     output_path : str, optional
         Path to the output file for the formatted ski file.
     cosmological : bool, optional
-        Set whether simulation is cosmological.
+        Set whether you want SKIRT simulation to be cosmological. 
+    cosmo_params : str, optional
+        Cosmological parameters used by the FIRE simulation. Options are PLANCK or AGORA.
     distance : float, optional
-        Distance to the simulation object in Mpc. Only used for non-cosmological runs or for rest frame instruments.
+        Distance to the simulation object in Mpc for rest-frame instruments. Note for non-cosmological runs all instruments are in the rest frame.
     FIRE_ver : int, optional
         Version of FIRE simulation (e.g., 2, 3) used to determine redshift of snapshot number.
     num_packets : float, optional
@@ -82,10 +87,6 @@ def format_ski_file(
         Minimum wavelength in microns for the source wavelength grid. Default is set to min_wavelength for consistency with the global grid, but can be set to a different value if desired.
     max_source_wavelength : float, optional
         Maximum wavelength in microns for the source wavelength grid. Default is set to max_wavelength for consistency with the global grid, but can be set to a different value if desired.
-    min_dust_emission_wavelength : float, optional
-        Minimum wavelength in microns for the dust emission grid. Default is 0.2 microns.
-    max_dust_emission_wavelength : float, optional
-        Maximum wavelength in microns for the dust emission grid. Default is 1000 microns. 
     num_dust_emission_wavelengths : int, optional
         Number of wavelengths for the dust emission grid. Default is set to 100. Note wavelengths are subbinned by 2x in the MIR to capture PAH features.
     half_fov_kpc : float, optional
@@ -104,11 +105,6 @@ def format_ski_file(
         When using medium_grid="octtree", this sets the maximum fraction of the
         total dust mass allowed in any grid cell. Smaller values lead to finer
         gridding and higher memory usage.
-    max_optical_depth : float, optional
-        When using medium_grid="octtree", this sets the maximum optical depth 
-        allowed in any grid cell. Default of 0 turns off this extra criterion.
-        Caution should be used when setting this parameter as it can lead very 
-        high memory usage.
     min_tree_level : int, optional
         When using medium_grid="octtree", this sets the minimum level of the octree grid (i.e. the maximum grid size). If you want finer detail for diffuse regions set this to a higher value.
     max_tree_level : int, optional
@@ -119,13 +115,13 @@ def format_ski_file(
         Path to text file containing scale factors for each snapshot of the simulation.
         If not given, will default to FIRE-2/3 values depending on FIRE_ver.
     instrument_pixel_ang_scales : dict, optional
-        Dictionary mapping instrument name prefixes to their pixel scales in arcseconds
+        Dictionary mapping observer-frame instrument name prefixes to their pixel scales in arcseconds
         per pixel. For each entry with key ``Name`` and value ``scale``, the placeholders
         ``{NameNumPixelsX}`` and ``{NameNumPixelsY}`` are computed and added to the template.
         Example: ``{"JWST": 0.031, "ALMA": 0.1}`` populates ``{JWSTNumPixelsX/Y}`` and
         ``{ALMANumPixelsX/Y}``.
     instrument_pixel_phy_scales : dict, optional
-        Dictionary mapping instrument name prefixes to their pixel scales in kpc
+        Dictionary mapping observer-frame instrument name prefixes to their pixel scales in kpc
         per pixel. For each entry with key ``Name`` and value ``scale``, the placeholders
         ``{NameNumPixelsX}`` and ``{NameNumPixelsY}`` are computed and added to the template.
         Example: ``{"JWST": 0.5, "ALMA": 1.0}`` populates ``{JWSTNumPixelsX/Y}`` and
@@ -134,123 +130,12 @@ def format_ski_file(
         Dictionary of additional placeholder keys and corresponding values to add to the template beyond the default templates. Ensure keys should match the placeholder names in the template file.
     """
 
-    dust_emission_type = dust_emission_type.capitalize() # format to match expected template formatting
-    if dust_emission_type not in ["Equilibrium", "Stochastic"]:
-        raise ValueError(f"Invalid dust_emission_type: '{dust_emission_type}'. Must be 'equilibrium' or 'stochastic'.")
+    # Make output directory if it doesn't exist
+    if not os.path.exists(os.path.dirname(output_path)):
+        os.makedirs(os.path.dirname(output_path))
 
-    if cosmological:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        if snapshot_scale_factors:
-            scale_factors = np.loadtxt(snapshot_scale_factors)
-        if FIRE_ver == 0: raise ValueError("FIRE_ver must be set to 2 or 3 for cosmological simulations if snapshot_scale_factors not given.")
-        elif FIRE_ver <=2: scale_factors = np.loadtxt(os.path.join(current_dir, "ski_templates/FIRE2_snapshot_scale-factors.txt"))
-        else: scale_factors = np.loadtxt(os.path.join(current_dir, "ski_templates/FIRE3_snapshot_scale-factors.txt"))
-        z = 1.0 / scale_factors[snapnum] - 1
-    else:
-        z = 0
-
-    # For high redshift CMB heating of dust grains should be accounted for
-    if z>3: include_CMB_heating = "true"
-    else: include_CMB_heating = "false"
-
-    # For non-zero redshift snapshots, present-day observers are symbolized by an observer distance of zero. 
-    # However, at z!=0 SKIRT will throw a fatal error. 
-    # To get around this for the z=0 snapshot, override its redshift to a small value.
-    # More info at https://skirt.ugent.be/root/_user_redshift.html
-    if z==0 or (FIRE_ver==2 and snapnum == 600) or (FIRE_ver==3 and snapnum == 500):
-        z = 0.003 # corresponds to a luminosity distance of ~13 Mpc
-        print(f"WARNING: Overriding redshift for snapnum {snapnum} to {z = } so observer instruments are at non-zero distance from object.")
-
-    # Define a cosmology object for a given FIRE-2 object
-    if simulation_object in ["m12i_res7100", "m10q_res7100"]:
-        cosmo = LambdaCDM(
-            name="AGORA",
-            H0=70.2,
-            Om0=0.272,
-            Ode0=0.728,
-            Ob0=0.0455,
-            meta={
-                "n_s": 0.961,
-                "sigma8": 0.807,
-                "reference": "Wetzel et al. 2023, Table 1",
-            },
-        )
-    else:
-        if simulation_object not in ["m11d_res7100", "m11i_res7100", "m11e_res7100", "HiZ"]:
-            print(f"Unknown simulation object: '{simulation_object}'. ")
-            print("Defaulting to PLANCK cosmological constants")
-        cosmo = LambdaCDM(
-            name="PLANCK",
-            H0=68.0,
-            Om0=0.31,
-            Ode0=0.69,
-            Ob0=0.048,
-            meta={
-                "n_s": 0.97,
-                "sigma8": 0.82,
-                "reference": "Wetzel et al. 2023, Table 1",
-            },
-        )
-
-    # Calculate the spatial scale in the simulation (in physical kpc) that
-    # corresponds to 1 pixel
-    if default_pixel_ang_scale is not None:
-        default_kpc_per_pixel = (
-            cosmo.kpc_proper_per_arcmin(z).to(u.kpc / u.arcsec).value * default_pixel_ang_scale
-        )
-    elif default_pixel_phy_scale is not None:
-        default_kpc_per_pixel = default_pixel_phy_scale
-    else:
-        raise ValueError("Must specify either default_pixel_ang_scale or default_pixel_phy_scale.")
-
-    # Set arbitrary distance to the object in Mpc
-    d_to_source = distance  # only used for rest-frame instruments with flat cosmology, all other instruments have distance set by redshift
-
-    # Define limits for relevant wavelength ranges used in SKIRT
-
-    # 1. Define *rest-frame* wavelength range for sources (stars)
-    min_wavelength_source = min_source_wavelength if min_source_wavelength is not None else min_wavelength
-    max_wavelength_source = max_source_wavelength if max_source_wavelength is not None else max_wavelength
-
-    # 2. Define wavelength limits for dust emission and radiation field
-    #    grids; these are set to the same values reported in Camps & Baes (2020)
-    #    used for stochastic grain heating. Includes increased binning across
-    #    MIR for PAH emission lines.
-    num_wavelengths_dust_base = num_dust_emission_wavelengths if num_dust_emission_wavelengths is not None else num_wavelengths
-    min_wavelength_dust_base, max_wavelength_dust_base = min_dust_emission_wavelength, max_dust_emission_wavelength
-
-    # Need finer wavelength binning for PAH features in MIR
-    num_wavelengths_dust_sub = 2 * num_wavelengths_dust_base
-
-    min_PAH_wavelength = 3.0 # microns; approximate start of PAH features
-    max_PAH_wavelength = 25.0 # microns; approximate end of PAH features
-    if min_dust_emission_wavelength > min_PAH_wavelength or max_dust_emission_wavelength < max_PAH_wavelength:
-        print("WARNING: The specified min or max dust emission wavelengths excludes the MIR regime where PAH features reside (3.0 - 25.0 microns).")
-    min_wavelength_dust_sub, max_wavelength_dust_sub = np.max([3.0, min_dust_emission_wavelength]), np.min([25.0, max_dust_emission_wavelength])
-
-    # This is the wavelength grid SKIRT stores radiation field info for each cell. 
-    # Can't be too large since this uses a lot of memory (each cell stores the rad field at each wavelength).
-    num_wavelengths_rad = num_rad_field_wavelengths if num_rad_field_wavelengths is not None else num_wavelengths
-    min_rad_field_wavelength = min_wavelength if min_rad_field_wavelength is None else min_rad_field_wavelength
-    max_rad_field_wavelength = max_wavelength if max_rad_field_wavelength is None else max_rad_field_wavelength
-    min_wavelength_rad, max_wavelength_rad = min_rad_field_wavelength, max_rad_field_wavelength
-
-    # 3. Define wavelength limits for *observer-frame* SED instruments
-    min_wavelength_obs, max_wavelength_obs = (
-        min_wavelength * (1 + z),
-        max_wavelength * (1 + z),
-    )
-
-    # 4. Determine if metallicity should be imported
-    # For simulations without live dust you want SKIRT to infer the dust mass 
-    # from the gas mass and metallicity. Otherwise you can give SKIRT the exact
-    # dust mass.
-    # If mass_fraction < 1, dust mass is inferred from M_dust = M_gas * Z * mass_fraction
-    # If mass_fraction = 1, dust mass is given directly by the simulation.
-    import_metallicity = "true" if mass_fraction < 1.0 else "false"
-
-    # -------
-
+    # 1. Determine the template file we need (or the one provided by the user) and read it in
+    
     # Determines name of template file which matches requested SKIRT mode and medium grid
     current_dir = os.path.dirname(os.path.abspath(__file__))
     template_dirc = os.path.join(current_dir, "ski_templates/")
@@ -282,56 +167,204 @@ def format_ski_file(
     with open(ski_template_filepath, "r") as f:
         ski_template = f.read()
 
+    # Check that the selected template is compatible with the cosmological setting
+    if 'LocalUniverseCosmology' in ski_template and cosmological:
+        raise ValueError("The selected template is for a local universe cosmology, but cosmological=True. Please select a different template or set cosmological=False.")
+    elif 'LocalUniverseCosmology' not in ski_template and not cosmological:
+        raise ValueError("The selected template is for a cosmological simulation, but cosmological=False. Please select a different template or set cosmological=True.")
 
+    dust_emission_type = dust_emission_type.capitalize() # format to match expected template formatting
+    if dust_emission_type not in ["Equilibrium", "Stochastic"]:
+        raise ValueError(f"Invalid dust_emission_type: '{dust_emission_type}'. Must be 'equilibrium' or 'stochastic'.")
+
+    # Determine the redshift of the simulation based on the snapshot number and FIRE version
+    if cosmological:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if snapshot_scale_factors:
+            scale_factors = np.loadtxt(snapshot_scale_factors)
+        if FIRE_ver == 0: raise ValueError("FIRE_ver must be set to 2 or 3 for cosmological simulations if snapshot_scale_factors not given.")
+        elif FIRE_ver <=2: scale_factors = np.loadtxt(os.path.join(current_dir, "ski_templates/FIRE2_snapshot_scale-factors.txt"))
+        else: scale_factors = np.loadtxt(os.path.join(current_dir, "ski_templates/FIRE3_snapshot_scale-factors.txt"))
+        z = 1.0 / scale_factors[snapnum] - 1
+    else:
+        z = 0
+
+    # For high redshift CMB heating of dust grains should be accounted for
+    if z>3: include_CMB_heating = "true"
+    else: include_CMB_heating = "false"
+
+    # For non-zero redshift snapshots, present-day observers are symbolized by an observer distance of zero. 
+    # However, at z!=0 SKIRT will throw a fatal error. 
+    # To get around this for the z=0 snapshot, override its redshift to a small value.
+    # More info at https://skirt.ugent.be/root/_user_redshift.html
+    if cosmological and (z==0 or (FIRE_ver==2 and snapnum == 600) or (FIRE_ver==3 and snapnum == 500)):
+        z = 0.003 # corresponds to a luminosity distance of ~13 Mpc
+        print(f"WARNING: Overriding redshift for snapnum {snapnum} to {z = } so observer instruments are at non-zero distance from object.")
+
+    # Define a cosmology object for a given FIRE-2 object
+    if cosmo_params not in ['PLANCK', 'AGORA']:
+        print(f"Unknown cosmological parameters: '{cosmo_params}'. ")
+        print("Defaulting to PLANCK cosmological constants")
+        cosmo_params = 'PLANCK'
+    if cosmo_params == 'AGORA':
+        cosmo = LambdaCDM(
+            name="AGORA",
+            H0=70.2,
+            Om0=0.272,
+            Ode0=0.728,
+            Ob0=0.0455,
+            meta={
+                "n_s": 0.961,
+                "sigma8": 0.807,
+                "reference": "Wetzel et al. 2023, Table 1",
+            },
+        )
+    else:
+        cosmo = LambdaCDM(
+            name="PLANCK",
+            H0=68.0,
+            Om0=0.31,
+            Ode0=0.69,
+            Ob0=0.048,
+            meta={
+                "n_s": 0.97,
+                "sigma8": 0.82,
+                "reference": "Wetzel et al. 2023, Table 1",
+            },
+        )
+
+    # Set arbitrary distance to the object in Mpc
+    d_to_source = distance  # only used for rest-frame instruments which have flat cosmology, all other instruments have distance set by redshift
+
+    # Calculate the spatial scale in the simulation (in physical kpc) that
+    # corresponds to 1 pixel for rest frame and observer frame instruments
+    if default_pixel_ang_scale is not None:
+        default_rest_kpc_per_pixel = default_pixel_ang_scale * u.arcsec.to(u.radian) * d_to_source * 1e3 # convert from Mpc to kpc
+        if cosmological:
+            default_obs_kpc_per_pixel = (
+                cosmo.kpc_proper_per_arcmin(z).to(u.kpc / u.arcsec).value * default_pixel_ang_scale
+            )
+        else:
+            default_obs_kpc_per_pixel = default_rest_kpc_per_pixel
+        
+    elif default_pixel_phy_scale is not None:
+        default_obs_kpc_per_pixel = default_pixel_phy_scale
+        default_rest_kpc_per_pixel = default_pixel_phy_scale
+    else:
+        raise ValueError("Must specify either default_pixel_ang_scale or default_pixel_phy_scale.")
+
+    
+
+    # Define limits for relevant wavelength ranges used in SKIRT
+
+    # 1. Define *rest-frame* wavelength range for sources (stars)
+    min_wavelength_source = min_source_wavelength if min_source_wavelength is not None else min_wavelength
+    max_wavelength_source = max_source_wavelength if max_source_wavelength is not None else max_wavelength
+
+    # 2. Define wavelength limits for dust emission and radiation field
+    #    grids; these are set to the same values reported in Camps & Baes (2020)
+    #    used for stochastic grain heating. Includes increased binning across
+    #    MIR for PAH emission lines.
+    num_wavelengths_dust_base = num_dust_emission_wavelengths if num_dust_emission_wavelengths is not None else num_wavelengths
+    # The wavelength range of dust emission needs to capture the entire emission spectrum 
+    # in order the produce the correct luminosities per the SKIRT docs. 
+    min_wavelength_dust_base = 0.2 # microns
+    max_wavelength_dust_base = 1000 # microns
+
+    # Need finer wavelength binning for PAH features in MIR
+    num_wavelengths_dust_sub = 2 * num_wavelengths_dust_base
+
+    min_PAH_wavelength = 3.0 # microns; approximate start of PAH features
+    max_PAH_wavelength = 25.0 # microns; approximate end of PAH features
+    if min_wavelength_dust_base > min_PAH_wavelength or max_wavelength_dust_base < max_PAH_wavelength:
+        print("WARNING: The specified min or max dust emission wavelengths excludes the MIR regime where PAH features reside (3.0 - 25.0 microns).")
+    min_wavelength_dust_sub, max_wavelength_dust_sub = np.max([3.0, min_wavelength_dust_base]), np.min([25.0, max_wavelength_dust_base])
+
+    # This is the wavelength grid SKIRT stores radiation field info for each cell. 
+    # Can't be too large since this uses a lot of memory (each cell stores the rad field at each wavelength).
+    num_wavelengths_rad = num_rad_field_wavelengths if num_rad_field_wavelengths is not None else num_wavelengths
+    min_rad_field_wavelength = min_wavelength if min_rad_field_wavelength is None else min_rad_field_wavelength
+    max_rad_field_wavelength = max_wavelength if max_rad_field_wavelength is None else max_rad_field_wavelength
+    min_wavelength_rad, max_wavelength_rad = min_rad_field_wavelength, max_rad_field_wavelength
+
+    # 3. Define wavelength limits for *observer-frame* SED instruments
+    min_wavelength_obs, max_wavelength_obs = (
+        min_wavelength * (1 + z),
+        max_wavelength * (1 + z),
+    )
+
+    # 4. Determine if metallicity should be imported
+    # For simulations without live dust you want SKIRT to infer the dust mass 
+    # from the gas mass and metallicity. Otherwise you can give SKIRT the exact
+    # dust mass.
+    # If mass_fraction < 1, dust mass is inferred from M_dust = M_gas * Z * mass_fraction
+    # If mass_fraction = 1, dust mass is given directly by the simulation.
+    import_metallicity = "true" if mass_fraction < 1.0 else "false"
+
+    # -------
+
+    # either set instrument fov to the same as the spatial grid (half_fov_kpc) or use the user-provided value (inst_half_fov_kpc)
     if inst_half_fov_kpc is None: 
         inst_half_fov_kpc = half_fov_kpc
     grid_half_fov_pc = half_fov_kpc * 1e3
     inst_fov_pc = 2 * inst_half_fov_kpc * 1e3
 
-    default_npixels = int(np.ceil(2 * inst_half_fov_kpc / default_kpc_per_pixel))
+    default_obs_npixels = int(np.ceil(2 * inst_half_fov_kpc / default_obs_kpc_per_pixel))
+    default_rest_npixels = int(np.ceil(2 * inst_half_fov_kpc / default_rest_kpc_per_pixel))
 
+    # Deal with extra user defined instruments in the provided template
+    all_npixels = default_obs_npixels
     extra_npixels = {}
     extra_kpc_per_pixel = {}
-    for name, pixel_ang_scale in instrument_pixel_ang_scales.items():
-        kpc_per_pixel = cosmo.kpc_proper_per_arcmin(z).to(u.kpc / u.arcsec).value * pixel_ang_scale
-        extra_kpc_per_pixel[name] = kpc_per_pixel
-        extra_npixels[name] = int(np.ceil(2 * inst_half_fov_kpc / kpc_per_pixel))
-    for name, pixel_phy_scale in instrument_pixel_phy_scales.items():
-        kpc_per_pixel = pixel_phy_scale
-        extra_kpc_per_pixel[name] = kpc_per_pixel
-        extra_npixels[name] = int(np.ceil(2 * inst_half_fov_kpc / kpc_per_pixel))
+    if instrument_pixel_ang_scales or instrument_pixel_phy_scales:
+        for name, pixel_ang_scale in instrument_pixel_ang_scales.items():
+            if cosmological:
+                kpc_per_pixel = cosmo.kpc_proper_per_arcmin(z).to(u.kpc / u.arcsec).value * pixel_ang_scale
+            else:
+                kpc_per_pixel = pixel_ang_scale * u.arcsec.to(u.radian) * d_to_source * 1e3 # convert from Mpc to kpc
+            extra_kpc_per_pixel[name] = kpc_per_pixel
+            extra_npixels[name] = int(np.ceil(2 * inst_half_fov_kpc / kpc_per_pixel))
+        for name, pixel_phy_scale in instrument_pixel_phy_scales.items():
+            kpc_per_pixel = pixel_phy_scale
+            extra_kpc_per_pixel[name] = kpc_per_pixel
+            extra_npixels[name] = int(np.ceil(2 * inst_half_fov_kpc / kpc_per_pixel))
+        all_npixels += list(extra_npixels.values())
 
-    all_npixels = [default_npixels] + list(extra_npixels.values())
+    # Catch instruments with too many pixels, since these use a lot of memory and arent needed for most use cases.
     if np.max(all_npixels) >= 1e4:
         raise ValueError(
             "Number of pixels must be less than 1e4. "
             + "The current redshift is too small or the pixel scale is too fine."
         )
 
+    if cosmological:
+        print("SKIRT simulation is cosmological with the following parameters:")
+        print(f"\t Redshift: {z}")
+        print(f"\t Reduced Hubble Constant: {cosmo.h}")
+        print(f"\t Matter Density Fraction: {cosmo.Om0}")
+    else:
+        print(f"SKIRT simulation is non-cosmological. All instruments are in the rest frame and distance to source is set to {d_to_source} Mpc.")
+
     print(
-        f"SKIRT simulation will use default {default_npixels} x {default_npixels} pixels ({inst_fov_pc:g} pc x {inst_fov_pc:g} pc) "
-        + f"with a physical scale of {default_kpc_per_pixel:.3f} kpc / pixel."
+        f"SKIRT simulation default instrument setup:\n" +
+        f"\t rest frame to source at {d_to_source} Mpc: {default_rest_npixels} x {default_rest_npixels} pixels ({inst_fov_pc:g} pc x {inst_fov_pc:g} pc) " +
+        f"with a physical scale of {default_rest_kpc_per_pixel:.3f} kpc / pixel."
     )
-    for name, npix in extra_npixels.items():
+    if cosmological:
         print(
-            f"SKIRT simulation will use {name} {npix} x {npix} pixels ({inst_fov_pc:g} pc x {inst_fov_pc:g} pc) "
-            + f"with a physical scale of {extra_kpc_per_pixel[name]:.3f} kpc / pixel."
+            f"\t observer frame: {default_obs_npixels} x {default_obs_npixels} pixels ({inst_fov_pc:g} pc x {inst_fov_pc:g} pc) "
+            + f"with a physical scale of {default_obs_kpc_per_pixel:.3f} kpc / pixel.\n"
         )
+    if instrument_pixel_ang_scales or instrument_pixel_phy_scales:
+        for name, npix in extra_npixels.items():
+            print(
+                f"SKIRT simulation extra instrument {name} setup:\n" +
+                f"\t {npix} x {npix} pixels ({inst_fov_pc:g} pc x {inst_fov_pc:g} pc) "
+                + f"with a physical scale of {extra_kpc_per_pixel[name]:.3f} kpc / pixel.\n"
+            )
+
+
     # Format the SKIRT input file with the appropriate parameters
-
-    # This is a workaround to handle missing keys in the dictionary and avoid
-    # KeyError exceptions. It returns the key wrapped in curly braces if the key
-    # is missing.
-    class SafeDict(dict):
-        def __missing__(self, key):
-            return "{" + key + "}"
-
-
-    # Make output directory if it doesn't exist
-    if not os.path.exists(os.path.dirname(output_path)):
-        os.makedirs(os.path.dirname(output_path))
-
-
     with open(output_path, "w") as f:
         num_packets = "{:g}".format(num_packets)
         dict_placeholders = SafeDict(
@@ -364,15 +397,16 @@ def format_ski_file(
                 numWavelengths=f"{num_wavelengths:d}",
                 fieldOfViewX=f"{inst_fov_pc:.4f}",
                 fieldOfViewY=f"{inst_fov_pc:.4f}",
-                DefaultNumPixelsX=f"{default_npixels:d}",
-                DefaultNumPixelsY=f"{default_npixels:d}",
-                DefaultNumPixelsZ=f"{default_npixels:d}",  # for probes
+                DefaultObsNumPixelsX=f"{default_obs_npixels:d}",
+                DefaultObsNumPixelsY=f"{default_obs_npixels:d}",
+                DefaultRestNumPixelsX=f"{default_rest_npixels:d}",
+                DefaultRestNumPixelsY=f"{default_rest_npixels:d}",
             )
         # Add extra placeholders for instruments with user-specified pixel scales
         for name, npix in extra_npixels.items():
             dict_placeholders = dict_placeholders | SafeDict(**{
-                f"{name}NumPixelsX": f"{npix:d}",
-                f"{name}NumPixelsY": f"{npix:d}",
+                f"{name}ObsNumPixelsX": f"{npix:d}",
+                f"{name}ObsNumPixelsY": f"{npix:d}",
             })
         # Add placeholders for dust emission wavelengths
         if skirt_sim_mode == "dust_emission":
@@ -391,7 +425,6 @@ def format_ski_file(
                     minTreeLevel=f"{min_tree_level:d}",
                     maxTreeLevel=f"{max_tree_level:d}",
                     maxDustFraction=f"{max_dust_frac:s}",
-                    maxDustOpticalDepth=f"{max_optical_depth:.4f}",
                 )
         # Add any additional placeholders specified by the user
         for key,value in add_template_placeholders.items():
@@ -403,7 +436,8 @@ def format_ski_file(
         diff = list(set(placeholders) - set(dict_placeholders.keys()))
         if len(diff) > 0:
             print(f"ERROR: The following placeholders are in the template but missing from the default dictionary: {diff}")
-            print("Define desired values for these placeholders in the add_template_placeholders argument.")
+            print("For additional instruments add the desired pixel scales to the instrument_pixel_ang_scales or instrument_pixel_phy_scales arguments and the corresponding placeholders will be automatically added to the dictionary.")
+            print("For everything else, define desired values for the placeholders in the add_template_placeholders argument.")
             return
         # diff = list(set(dict_placeholders.keys()) - set(placeholders))
         # if len(diff) > 0:
@@ -466,15 +500,6 @@ def format_job_script(
         job_template = f.read()
 
     # Format the job script with the appropriate parameters
-
-    # This is a workaround to handle missing keys in the dictionary and avoid
-    # KeyError exceptions. It returns the key wrapped in curly braces if the key
-    # is missing.
-    class SafeDict(dict):
-        def __missing__(self, key):
-            return "{" + key + "}"
-
-
     # Make output directory if it doesn't exist
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
