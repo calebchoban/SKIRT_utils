@@ -19,7 +19,7 @@
                             <CubicSplineSmoothingKernel/>
                         </smoothingKernel>
                         <sedFamily type="SEDFamily">
-                            <BpassSEDFamily imf="Kroupa100" resolution="Original"/>
+                            <Starburst99SEDFamily/>
                         </sedFamily>
                         <wavelengthBiasDistribution type="WavelengthDistribution">
                             <DefaultWavelengthDistribution/>

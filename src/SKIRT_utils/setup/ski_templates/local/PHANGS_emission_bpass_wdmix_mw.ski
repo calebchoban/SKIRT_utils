@@ -151,6 +151,16 @@
                             <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="90 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="1"/>
                         </form>
                     </ImportedMediumTemperatureProbe>
+                    <RadiationFieldProbe probeName="rad_cell" writeWavelengthGrid="true" probeAfter="Run">
+                        <form type="Form">
+                            <AtPositionsForm filename="dust.dat" useColumns=""/>
+                        </form>
+                    </RadiationFieldProbe>
+                    <RadiationFieldProbe probeName="rad_proj" writeWavelengthGrid="false" probeAfter="Run">
+                        <form type="Form">
+                            <ParallelProjectionForm inclination="0 deg" azimuth="0 deg" roll="0 deg" fieldOfViewX="{fieldOfViewX} pc" numPixelsX="{DefaultObsNumPixelsX}" centerX="0 pc" fieldOfViewY="{fieldOfViewY} pc" numPixelsY="{DefaultObsNumPixelsY}" centerY="0 pc" numSampling="4"/>
+                        </form>
+                    </RadiationFieldProbe>
                 </probes>
             </ProbeSystem>
         </probeSystem>
